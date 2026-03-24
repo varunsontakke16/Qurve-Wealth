@@ -97,6 +97,128 @@ body.page-out {
   animation-delay: -9s;
 }
 
+.bg-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(141, 214, 168, 0.55), rgba(78, 151, 109, 0.08));
+  box-shadow: 0 0 14px rgba(104, 182, 132, 0.15);
+  animation: particleFloat 14s ease-in-out infinite alternate;
+}
+
+.particle.p-1 {
+  width: 8px;
+  height: 8px;
+  left: 8%;
+  top: 18%;
+  animation-duration: 12s;
+}
+
+.particle.p-2 {
+  width: 6px;
+  height: 6px;
+  left: 16%;
+  top: 42%;
+  animation-duration: 16s;
+  animation-delay: -3s;
+}
+
+.particle.p-3 {
+  width: 10px;
+  height: 10px;
+  left: 24%;
+  top: 72%;
+  animation-duration: 18s;
+  animation-delay: -7s;
+}
+
+.particle.p-4 {
+  width: 7px;
+  height: 7px;
+  left: 34%;
+  top: 26%;
+  animation-duration: 14s;
+  animation-delay: -5s;
+}
+
+.particle.p-5 {
+  width: 9px;
+  height: 9px;
+  left: 43%;
+  top: 58%;
+  animation-duration: 20s;
+  animation-delay: -2s;
+}
+
+.particle.p-6 {
+  width: 6px;
+  height: 6px;
+  left: 52%;
+  top: 14%;
+  animation-duration: 13s;
+  animation-delay: -8s;
+}
+
+.particle.p-7 {
+  width: 11px;
+  height: 11px;
+  left: 61%;
+  top: 36%;
+  animation-duration: 22s;
+  animation-delay: -6s;
+}
+
+.particle.p-8 {
+  width: 7px;
+  height: 7px;
+  left: 68%;
+  top: 68%;
+  animation-duration: 17s;
+  animation-delay: -11s;
+}
+
+.particle.p-9 {
+  width: 8px;
+  height: 8px;
+  left: 77%;
+  top: 22%;
+  animation-duration: 15s;
+  animation-delay: -4s;
+}
+
+.particle.p-10 {
+  width: 10px;
+  height: 10px;
+  left: 85%;
+  top: 49%;
+  animation-duration: 19s;
+  animation-delay: -10s;
+}
+
+.particle.p-11 {
+  width: 6px;
+  height: 6px;
+  left: 92%;
+  top: 74%;
+  animation-duration: 21s;
+  animation-delay: -1s;
+}
+
+.particle.p-12 {
+  width: 9px;
+  height: 9px;
+  left: 95%;
+  top: 12%;
+  animation-duration: 16s;
+  animation-delay: -9s;
+}
+
 @keyframes pageFade {
   from {
     opacity: 0;
@@ -117,6 +239,21 @@ body.page-out {
   }
   100% {
     transform: translateX(3vw) translateY(6px) scaleX(1.06);
+  }
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.95);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate3d(6px, -12px, 0) scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate3d(-5px, 10px, 0) scale(1.08);
+    opacity: 0.38;
   }
 }
 
