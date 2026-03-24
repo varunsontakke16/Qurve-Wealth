@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Qurve Wealth | Invest Now</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Playfair+Display:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <nav class="top-nav">
+      <div class="inner">
+        <a class="brand" href="index.html">Qurve Wealth</a>
+        <div class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="philosophy.html">Philosophy</a>
+          <a href="strategy.html">Strategy</a>
+          <a href="blogs.html">Blogs</a>
+          <a href="tool.html">Tool</a>
+          <a class="active" href="contact.html">Contact</a>
+        </div>
+        <a class="nav-cta" href="contact.html">Invest Now</a>
+      </div>
+    </nav>
+
+    <main class="site-shell">
+      <section class="section full-typography">
+        <p class="eyebrow reveal">CONTACT / INVEST NOW</p>
+        <h1 class="mega reveal">Ready to build capital with <em>clarity</em>?</h1>
+        <p class="hero-copy reveal">
+          Tell us your goals and current allocation context. We will respond with a tailored roadmap and onboarding
+          options.
+        </p>
+        <div class="editorial-rail reveal"></div>
+      </section>
+
+      <section class="section tool-panel reveal">
+        <form>
+          <div class="tool-grid">
+            <div>
+              <label for="name">Full name</label>
+              <input id="name" type="text" required placeholder="Your name" />
+            </div>
+            <div>
+              <label for="email">Email address</label>
+              <input id="email" type="email" required placeholder="you@example.com" />
+            </div>
+          </div>
+          <div style="margin-top: 0.8rem">
+            <label for="message">What are you looking to achieve?</label>
+            <textarea
+              id="message"
+              placeholder="Tell us about timeline, risk profile, and assets you want to focus on."
+              required
+            ></textarea>
+          </div>
+          <div style="margin-top: 1rem; display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap">
+            <button class="btn btn-primary" type="submit">Submit Request</button>
+            <span class="muted" data-form-message></span>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="site-shell footer-grid">
+        <div>
+          <a class="brand" href="index.html">Qurve Wealth</a>
+          <p class="muted">Institutional-grade insights. Editorial-grade delivery.</p>
+        </div>
+        <div class="socials">
+          <a href="#">X</a>
+          <a href="#">LinkedIn</a>
+          <a href="#">YouTube</a>
+          <a href="#">Instagram</a>
+        </div>
+      </div>
+    </footer>
+    <script src="script.js"></script>
+  </body>
+</html>
