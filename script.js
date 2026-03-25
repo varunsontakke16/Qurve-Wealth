@@ -6,39 +6,42 @@ const rotatingWords = [
 ];
 
 function setupRotatingHeadline() {
-  const target = document.querySelector("[data-rotating-headline]");
-  if (!target) return;
-  let wordIndex = 0;
-  let charIndex = 0;
-  let deleting = false;
-  let wait = 0;
+  const targets = document.querySelectorAll("[data-rotating-headline]");
+  if (!targets.length) return;
 
-  function tick() {
-    const currentWord = rotatingWords[wordIndex];
+  targets.forEach((target) => {
+    let wordIndex = 0;
+    let charIndex = 0;
+    let deleting = false;
+    let wait = 0;
 
-    if (!deleting) {
-      charIndex += 1;
-      target.textContent = currentWord.slice(0, charIndex);
-      if (charIndex === currentWord.length) {
-        deleting = true;
-        wait = 16;
+    function tick() {
+      const currentWord = rotatingWords[wordIndex];
+
+      if (!deleting) {
+        charIndex += 1;
+        target.textContent = currentWord.slice(0, charIndex);
+        if (charIndex === currentWord.length) {
+          deleting = true;
+          wait = 16;
+        }
+      } else if (wait > 0) {
+        wait -= 1;
+      } else {
+        charIndex -= 1;
+        target.textContent = currentWord.slice(0, charIndex);
+        if (charIndex === 0) {
+          deleting = false;
+          wordIndex = (wordIndex + 1) % rotatingWords.length;
+        }
       }
-    } else if (wait > 0) {
-      wait -= 1;
-    } else {
-      charIndex -= 1;
-      target.textContent = currentWord.slice(0, charIndex);
-      if (charIndex === 0) {
-        deleting = false;
-        wordIndex = (wordIndex + 1) % rotatingWords.length;
-      }
+
+      const speed = deleting ? 46 : 76;
+      setTimeout(tick, speed);
     }
 
-    const speed = deleting ? 46 : 76;
-    setTimeout(tick, speed);
-  }
-
-  tick();
+    tick();
+  });
 }
 
 function setupRevealOnScroll() {
