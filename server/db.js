@@ -89,9 +89,9 @@ function nextId(posts) {
   return Math.max(...posts.map((p) => p.id)) + 1;
 }
 
-function insertPost({ title, excerpt, body, category, imageFilename, imageUrl }) {
+function insertPost({ title, excerpt, body, category, imageFilename, imageUrl, slugBase }) {
   const data = readDb();
-  const base = slugify(title);
+  const base = slugBase ? slugify(slugBase) : slugify(title);
   const slug = ensureUniqueSlug(base);
   const id = nextId(data.posts);
   const now = new Date().toISOString();
@@ -153,16 +153,35 @@ function deletePost(id) {
   return { changes: 1, image_filename };
 }
 
+function insertSamplePost() {
+  insertPost({
+    title: "Sample: Five signals that matter for your mutual fund",
+    excerpt:
+      "Preview how Perspective cards and article pages look—with a real thumbnail, title, tags, and body text.",
+    body: `This is sample content so you can check the blog listing, card layout, and full article page.
+
+In a real post you would expand on thesis, data sources, and clear takeaways for readers. Edit or delete this from the admin area whenever you like.
+
+Blank lines in the body become separate paragraphs on the article page.`,
+    category: "markets",
+    imageFilename: null,
+    imageUrl:
+      "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80",
+    slugBase: "sample-qurve-perspective",
+  });
+}
+
 function seedIfEmpty() {
   const data = readDb();
   if (data.posts.length > 0) return;
-  insertPost({
-    title: "US Bond Volatility Is Back",
-    excerpt: "How term premium repricing is leaking into equity dispersion.",
-    body: "How term premium repricing is leaking into equity dispersion and creating tactical opportunities.\n\nWe unpack what to watch next and how to think about duration in the current regime.",
-    category: "markets",
-    imageFilename: null,
-  });
+  insertSamplePost();
+}
+
+/** Adds the UI sample post if missing (e.g. DB already had older seed data). */
+function ensureSamplePost() {
+  const data = readDb();
+  if (data.posts.some((p) => p.slug === "sample-qurve-perspective")) return;
+  insertSamplePost();
 }
 
 module.exports = {
@@ -174,4 +193,5 @@ module.exports = {
   deletePost,
   slugify,
   seedIfEmpty,
+  ensureSamplePost,
 };

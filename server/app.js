@@ -13,6 +13,7 @@ const {
   updatePost,
   deletePost,
   seedIfEmpty,
+  ensureSamplePost,
 } = require("./db");
 
 const app = express();
@@ -37,6 +38,7 @@ if (!IS_VERCEL) {
 
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 seedIfEmpty();
+ensureSamplePost();
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
