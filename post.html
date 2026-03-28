@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Qurve Wealth | Blogs & Newsletters</title>
+    <title>Article | Qurve Wealth</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -12,7 +12,7 @@
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="blog-page">
+  <body class="blog-page post-page">
     <nav class="top-nav">
       <div class="inner">
         <a class="brand brand-animated" href="index.html">
@@ -31,28 +31,14 @@
     </nav>
 
     <main class="site-shell">
-      <section class="hero hero--blogs">
-        <p class="eyebrow reveal">Perspective</p>
-        <p class="blog-tagline reveal">Stay ahead of the Curve, <span class="accent">with Qurve</span></p>
-        <h1 class="headline headline--blogs reveal">Ideas that move your money forward</h1>
-        <p class="hero-copy reveal">
-          Curated notes on markets, the economy, personal finance, and how people actually behave with money—written to
-          be clear, useful, and worth your time.
-        </p>
-        <div class="editorial-rail reveal"></div>
-      </section>
-
-      <section class="section section--blogs">
-        <div class="filters reveal">
-          <button class="filter-btn active" data-filter="all" type="button">All</button>
-          <button class="filter-btn" data-filter="markets" type="button">Markets</button>
-          <button class="filter-btn" data-filter="economy" type="button">Economy</button>
-          <button class="filter-btn" data-filter="personal-finance" type="button">Personal Finance</button>
-          <button class="filter-btn" data-filter="consumer-behaviour" type="button">Consumer Behaviour</button>
-        </div>
-        <div id="blog-list" class="cards blog-cards"></div>
-        <p id="blog-list-fallback" class="muted hidden"></p>
-      </section>
+      <p class="post-back reveal visible">
+        <a href="blogs.html" class="post-back__link">← Back to Perspective</a>
+      </p>
+      <article class="post-article reveal visible" id="post-root">
+        <p class="muted" id="post-loading">Loading article…</p>
+        <div id="post-content" class="hidden"></div>
+        <div id="post-error" class="hidden"></div>
+      </article>
     </main>
 
     <footer class="footer">
@@ -70,6 +56,6 @@
       </div>
     </footer>
     <script src="script.js"></script>
-    <script src="blog.js"></script>
+    <script src="post.js"></script>
   </body>
 </html>

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Admin | Qurve Wealth Blog</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Playfair+Display:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="admin-page">
+    <nav class="top-nav">
+      <div class="inner">
+        <a class="brand" href="index.html">Qurve Wealth</a>
+        <div class="nav-links">
+          <a href="blogs.html">← Perspective</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="site-shell admin-main">
+      <section class="section" id="login-section">
+        <p class="eyebrow">Admin</p>
+        <h1 class="section-title">Blog manager</h1>
+        <p class="section-intro">Sign in to create, edit, or remove posts. Use a strong password and keep <code>.env</code> private.</p>
+        <form class="admin-login tool-panel reveal visible" id="login-form">
+          <label for="admin-password">Password</label>
+          <input id="admin-password" type="password" autocomplete="current-password" required />
+          <div style="margin-top: 1rem">
+            <button class="btn btn-primary" type="submit">Sign in</button>
+            <span class="muted admin-msg" id="login-msg"></span>
+          </div>
+        </form>
+      </section>
+
+      <div id="admin-app" class="hidden">
+        <section class="section">
+          <div class="admin-toolbar">
+            <h2 class="section-title" style="margin: 0">Posts</h2>
+            <button class="btn btn-primary" type="button" id="btn-new-post">New post</button>
+            <button class="btn btn-secondary" type="button" id="btn-logout">Sign out</button>
+          </div>
+          <p class="muted admin-msg" id="admin-status"></p>
+          <div class="admin-table-wrap tool-panel">
+            <table class="admin-table" id="posts-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Updated</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="posts-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section hidden" id="editor-section">
+          <h2 class="section-title" id="editor-title">New post</h2>
+          <form class="tool-panel admin-editor-form" id="post-form" enctype="multipart/form-data">
+            <input type="hidden" id="edit-id" name="id" value="" />
+            <div class="tool-grid">
+              <div style="grid-column: 1 / -1">
+                <label for="f-title">Title</label>
+                <input id="f-title" name="title" required />
+              </div>
+              <div style="grid-column: 1 / -1">
+                <label for="f-slug">Slug (optional)</label>
+                <input id="f-slug" name="slug" placeholder="auto from title" />
+              </div>
+              <div>
+                <label for="f-category">Category</label>
+                <select id="f-category" name="category">
+                  <option value="markets">Markets</option>
+                  <option value="economy">Economy</option>
+                  <option value="personal-finance">Personal Finance</option>
+                  <option value="consumer-behaviour">Consumer Behaviour</option>
+                </select>
+              </div>
+              <div>
+                <label for="f-image">Thumbnail image</label>
+                <input id="f-image" name="image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+              </div>
+              <div style="grid-column: 1 / -1">
+                <label for="f-excerpt">Excerpt</label>
+                <textarea id="f-excerpt" name="excerpt" rows="2" placeholder="Short summary for cards"></textarea>
+              </div>
+              <div style="grid-column: 1 / -1">
+                <label for="f-body">Body</label>
+                <textarea id="f-body" name="body" rows="14" placeholder="Full article (plain text; blank lines become paragraphs)"></textarea>
+              </div>
+            </div>
+            <div class="admin-form-actions">
+              <button class="btn btn-primary" type="submit" id="btn-save">Save</button>
+              <button class="btn btn-secondary" type="button" id="btn-cancel-edit">Cancel</button>
+              <span class="muted admin-msg" id="form-msg"></span>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="site-shell footer-grid">
+        <p class="muted">Admin area — do not share this URL publicly.</p>
+      </div>
+    </footer>
+    <script src="admin.js"></script>
+  </body>
+</html>

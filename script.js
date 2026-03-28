@@ -94,24 +94,22 @@ function setupCounters() {
 }
 
 function setupBlogFilters() {
-  const filterButtons = document.querySelectorAll("[data-filter]");
-  const cards = document.querySelectorAll("[data-category]");
-  if (!filterButtons.length || !cards.length) return;
-
-  filterButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const value = button.dataset.filter;
-      filterButtons.forEach((b) => b.classList.remove("active"));
-      button.classList.add("active");
-
-      cards.forEach((card) => {
-        const cardCategory = card.dataset.category;
-        if (value === "all" || cardCategory === value) {
-          card.classList.remove("hidden");
-        } else {
-          card.classList.add("hidden");
-        }
-      });
+  const filters = document.querySelector(".filters");
+  if (!filters || filters.dataset.blogFiltersBound === "1") return;
+  filters.dataset.blogFiltersBound = "1";
+  filters.addEventListener("click", (e) => {
+    const button = e.target.closest("[data-filter]");
+    if (!button) return;
+    const value = button.dataset.filter;
+    filters.querySelectorAll("[data-filter]").forEach((b) => b.classList.remove("active"));
+    button.classList.add("active");
+    document.querySelectorAll("[data-category]").forEach((card) => {
+      const cardCategory = card.dataset.category;
+      if (value === "all" || cardCategory === value) {
+        card.classList.remove("hidden");
+      } else {
+        card.classList.add("hidden");
+      }
     });
   });
 }
