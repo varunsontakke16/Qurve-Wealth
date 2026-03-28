@@ -1,7 +1,13 @@
 const fs = require("fs");
 const path = require("path");
 
-const dbPath = process.env.DB_PATH || path.join(__dirname, "..", "data", "blog.json");
+function resolveDbPath() {
+  if (process.env.DB_PATH) return process.env.DB_PATH;
+  if (process.env.VERCEL) return path.join("/tmp", "blog.json");
+  return path.join(__dirname, "..", "data", "blog.json");
+}
+
+const dbPath = resolveDbPath();
 
 function readDb() {
   try {
@@ -21,6 +27,8 @@ function writeDbAtomic(data) {
 
 function rowToPost(row) {
   if (!row) return null;
+  const fromFile = row.image_filename ? `/uploads/blog/${row.image_filename}` : null;
+  const fromUrl = row.image_url && String(row.image_url).trim() ? String(row.image_url).trim() : null;
   return {
     id: row.id,
     slug: row.slug,
@@ -28,7 +36,9 @@ function rowToPost(row) {
     excerpt: row.excerpt,
     body: row.body,
     category: row.category,
-    imageUrl: row.image_filename ? `/uploads/blog/${row.image_filename}` : null,
+    imageUrl: fromUrl || fromFile,
+    image_url: fromUrl,
+    image_filename: row.image_filename || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -79,7 +89,7 @@ function nextId(posts) {
   return Math.max(...posts.map((p) => p.id)) + 1;
 }
 
-function insertPost({ title, excerpt, body, category, imageFilename }) {
+function insertPost({ title, excerpt, body, category, imageFilename, imageUrl }) {
   const data = readDb();
   const base = slugify(title);
   const slug = ensureUniqueSlug(base);
@@ -93,6 +103,7 @@ function insertPost({ title, excerpt, body, category, imageFilename }) {
     body: body || "",
     category: category || "markets",
     image_filename: imageFilename || null,
+    image_url: imageUrl || null,
     created_at: now,
     updated_at: now,
   };
@@ -101,7 +112,7 @@ function insertPost({ title, excerpt, body, category, imageFilename }) {
   return rowToPost(row);
 }
 
-function updatePost(id, { title, excerpt, body, category, imageFilename, slug: slugOverride }) {
+function updatePost(id, { title, excerpt, body, category, imageFilename, imageUrl, slug: slugOverride }) {
   const data = readDb();
   const idx = data.posts.findIndex((p) => p.id === id);
   if (idx === -1) return null;
@@ -112,8 +123,10 @@ function updatePost(id, { title, excerpt, body, category, imageFilename, slug: s
   } else if (title && title !== existing.title) {
     slug = ensureUniqueSlug(slugify(title), id);
   }
-  const nextImage =
+  const nextFile =
     imageFilename !== undefined ? imageFilename : existing.image_filename;
+  const nextUrl =
+    imageUrl !== undefined ? imageUrl : existing.image_url;
   const updated = {
     ...existing,
     slug,
@@ -121,7 +134,8 @@ function updatePost(id, { title, excerpt, body, category, imageFilename, slug: s
     excerpt: excerpt ?? existing.excerpt,
     body: body ?? existing.body,
     category: category ?? existing.category,
-    image_filename: nextImage,
+    image_filename: nextFile,
+    image_url: nextUrl,
     updated_at: new Date().toISOString(),
   };
   data.posts[idx] = updated;

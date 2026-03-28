@@ -83,8 +83,17 @@
                   <option value="consumer-behaviour">Consumer Behaviour</option>
                 </select>
               </div>
+              <div style="grid-column: 1 / -1">
+                <label for="f-image-url">Image URL (optional)</label>
+                <input
+                  id="f-image-url"
+                  name="image_url"
+                  type="url"
+                  placeholder="https://… (recommended on Vercel; persists across deploys)"
+                />
+              </div>
               <div>
-                <label for="f-image">Thumbnail image</label>
+                <label for="f-image">Thumbnail file (optional)</label>
                 <input id="f-image" name="image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
               </div>
               <div style="grid-column: 1 / -1">

@@ -60,3 +60,32 @@ For production at scale, multi-server hosting, or strict compliance, you can mov
 | DELETE | `/api/admin/posts/:id` | Bearer JWT |
 
 Uploaded images are stored under `uploads/blog/` and served at `/uploads/blog/...`.
+
+---
+
+## Deploy on Vercel (testing)
+
+1. Push this repo to GitHub/GitLab/Bitbucket and **Import** the project in the [Vercel dashboard](https://vercel.com/).
+2. **Framework preset:** Other (static + serverless API).
+3. **Environment variables** (Project → Settings → Environment Variables):
+
+| Name | Value |
+|------|--------|
+| `ADMIN_PASSWORD` | Strong password for `/admin.html` |
+| `JWT_SECRET` | Long random string (32+ characters) |
+
+4. **Redeploy** after saving env vars.
+
+### How it behaves on Vercel
+
+- **HTML/CSS/JS** are served from the project root as static files.
+- **`/api/*`** is handled by **`api/index.js`** (Express via `serverless-http`).
+- **Blog JSON** defaults to **`/tmp/blog.json`** on Vercel (`VERCEL` is set automatically). That storage is **ephemeral** (can reset between invocations or deploys). For real testing of persistent content, either:
+  - Use **Image URL** in the admin (HTTPS image links work reliably), and accept that **post text** may reset unless you add a managed database later, **or**
+  - Add **Vercel Postgres**, **KV**, or another hosted DB and replace `server/db.js` with a driver for that store.
+- **File uploads** on Vercel use **`/tmp`** for the process; prefer **Image URL** for thumbnails on serverless so images survive cold starts.
+
+### Local vs Vercel
+
+- **Local:** `npm start` → `data/blog.json` + `uploads/blog/` (persistent).
+- **Vercel:** same API paths; use dashboard env vars; prefer **Image URL** for hero images.

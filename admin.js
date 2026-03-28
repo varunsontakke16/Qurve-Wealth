@@ -105,6 +105,7 @@ function escapeHtml(s) {
 function resetForm() {
   postForm.reset();
   editId.value = "";
+  document.getElementById("f-image-url").value = "";
   document.getElementById("editor-title").textContent = "New post";
 }
 
@@ -124,6 +125,7 @@ async function startEdit(id) {
   document.getElementById("f-category").value = p.category;
   document.getElementById("f-excerpt").value = p.excerpt || "";
   document.getElementById("f-body").value = p.body || "";
+  document.getElementById("f-image-url").value = p.image_url || "";
   document.getElementById("f-image").value = "";
   document.getElementById("editor-title").textContent = "Edit post";
   editorSection.classList.remove("hidden");
