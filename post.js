@@ -39,6 +39,12 @@ function apiUrl(path) {
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+function postTagLabels(post) {
+  const slugs =
+    post.tags && post.tags.length ? post.tags : post.category ? [post.category] : ["markets"];
+  return slugs.map((s) => CATEGORY_LABEL[s] || s);
+}
+
 async function loadPost() {
   const params = new URLSearchParams(window.location.search);
   const slug = params.get("slug");
@@ -53,28 +59,46 @@ async function loadPost() {
     return;
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
+
   try {
-    const res = await fetch(`/api/posts/${encodeURIComponent(slug)}`);
+    const res = await fetch(apiUrl(`/api/posts/${encodeURIComponent(slug)}`), {
+      signal: controller.signal,
+      cache: "no-store",
+      credentials: "same-origin",
+    });
+    clearTimeout(timeoutId);
     if (!res.ok) throw new Error("Article not found");
     const { post } = await res.json();
-    const cat = CATEGORY_LABEL[post.category] || post.category;
+    const tagLabels = postTagLabels(post);
+    const eyebrow =
+      tagLabels.length === 1
+        ? `<p class="eyebrow">${escapeHtml(tagLabels[0])}</p>`
+        : `<p class="eyebrow post-hero__tags">${tagLabels
+            .map((l) => `<span class="post-hero__tag">${escapeHtml(l)}</span>`)
+            .join("")}</p>`;
     document.title = `${post.title} | Qurve Wealth`;
 
     const heroImg = post.imageUrl
       ? `<div class="post-hero__media"><img src="${escapeHtml(post.imageUrl)}" alt="" width="1200" height="675" loading="eager" /></div>`
       : `<div class="post-hero__media post-hero__media--gradient" role="presentation"></div>`;
 
+    const bodyHtml =
+      typeof post.bodyHtml === "string" && post.bodyHtml.trim()
+        ? post.bodyHtml
+        : bodyToHtml(post.body);
     root.innerHTML = `
       <header class="post-hero">
         ${heroImg}
         <div class="post-hero__text">
-          <p class="eyebrow">${escapeHtml(cat)}</p>
+          ${eyebrow}
           <time class="post-date" datetime="${escapeHtml(post.updatedAt || "")}">${escapeHtml(formatDate(post.updatedAt))}</time>
           <h1 class="post-title">${escapeHtml(post.title)}</h1>
           ${post.excerpt ? `<p class="post-excerpt">${escapeHtml(post.excerpt)}</p>` : ""}
         </div>
       </header>
-      <div class="post-body">${bodyToHtml(post.body)}</div>
+      <div class="post-body">${bodyHtml}</div>
     `;
     loading.classList.add("hidden");
     root.classList.remove("hidden");

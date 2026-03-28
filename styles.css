@@ -844,6 +844,26 @@ body.page-out {
   line-height: 1.65;
 }
 
+.post-hero__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.45rem;
+}
+
+.post-hero__tag {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(31, 111, 71, 0.14);
+  color: #1f5c3d;
+  border: 1px solid rgba(118, 174, 138, 0.35);
+}
+
 .post-body {
   color: var(--ink);
   font-size: 1.02rem;
@@ -856,6 +876,96 @@ body.page-out {
 
 .post-body p:last-child {
   margin-bottom: 0;
+}
+
+.post-body h2,
+.post-body h3,
+.post-body h4 {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 1.65rem 0 0.75rem;
+  color: var(--ink);
+}
+
+.post-body h2 {
+  font-size: 1.55rem;
+}
+
+.post-body h3 {
+  font-size: 1.25rem;
+}
+
+.post-body h4 {
+  font-size: 1.08rem;
+}
+
+.post-body ul,
+.post-body ol {
+  margin: 0 0 1.1rem;
+  padding-left: 1.35rem;
+}
+
+.post-body li {
+  margin-bottom: 0.35rem;
+}
+
+.post-body strong {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.post-body a {
+  color: #1f6f47;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.post-body a:hover {
+  color: #165a38;
+}
+
+.post-body hr {
+  border: none;
+  border-top: 1px solid rgba(118, 174, 138, 0.35);
+  margin: 1.5rem 0;
+}
+
+.post-body blockquote {
+  margin: 0 0 1.1rem;
+  padding: 0.65rem 1rem;
+  border-left: 3px solid rgba(31, 111, 71, 0.45);
+  background: rgba(237, 247, 239, 0.5);
+  color: var(--muted);
+}
+
+.post-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: calc(var(--radius) - 2px);
+  margin: 0.75rem 0 1.25rem;
+  border: 1px solid rgba(118, 174, 138, 0.28);
+}
+
+.post-body code {
+  font-size: 0.9em;
+  padding: 0.12rem 0.35rem;
+  border-radius: 4px;
+  background: rgba(31, 111, 71, 0.08);
+}
+
+.post-body pre {
+  margin: 0 0 1.1rem;
+  padding: 1rem;
+  overflow-x: auto;
+  border-radius: calc(var(--radius) - 2px);
+  background: rgba(26, 40, 32, 0.06);
+  font-size: 0.88rem;
+}
+
+.post-body pre code {
+  padding: 0;
+  background: none;
 }
 
 /* Admin */
@@ -927,6 +1037,54 @@ body.page-out {
 
 .admin-editor-form .tool-grid {
   margin-top: 0.5rem;
+}
+
+.admin-tags-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #2d6e4c;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.admin-tag-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
+}
+
+.admin-tag-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  color: #173c2a;
+  cursor: pointer;
+  margin: 0;
+}
+
+.admin-tag-option input {
+  width: auto;
+  margin: 0;
+}
+
+.admin-hint {
+  font-size: 0.82rem;
+  margin-top: 0.45rem;
+  margin-bottom: 0;
+}
+
+.admin-page .EasyMDE,
+.admin-page .CodeMirror {
+  border-radius: 12px;
+}
+
+.admin-page .EasyMDE {
+  border: 1px solid rgba(114, 170, 134, 0.35);
+}
+
+.admin-page .editor-toolbar {
+  border-radius: 12px 12px 0 0;
 }
 
 .tool-panel {

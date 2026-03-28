@@ -103,9 +103,12 @@ function setupBlogFilters() {
     const value = button.dataset.filter;
     filters.querySelectorAll("[data-filter]").forEach((b) => b.classList.remove("active"));
     button.classList.add("active");
-    document.querySelectorAll("[data-category]").forEach((card) => {
-      const cardCategory = card.dataset.category;
-      if (value === "all" || cardCategory === value) {
+    document.querySelectorAll("[data-category], [data-tags]").forEach((card) => {
+      const list = (card.dataset.tags || card.dataset.category || "")
+        .split(/\s+/)
+        .filter(Boolean);
+      const match = value === "all" || list.includes(value);
+      if (match) {
         card.classList.remove("hidden");
       } else {
         card.classList.add("hidden");

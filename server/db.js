@@ -1,6 +1,35 @@
 const fs = require("fs");
 const path = require("path");
 
+const ALLOWED_TAG_SLUGS = new Set([
+  "markets",
+  "economy",
+  "personal-finance",
+  "consumer-behaviour",
+]);
+
+function normalizeTags(tags, fallbackCategory) {
+  let arr = [];
+  if (Array.isArray(tags)) {
+    arr = tags.map((t) => String(t).trim()).filter((t) => ALLOWED_TAG_SLUGS.has(t));
+  } else if (tags != null && typeof tags === "string" && tags.trim()) {
+    try {
+      const parsed = JSON.parse(tags);
+      if (Array.isArray(parsed)) {
+        arr = parsed.map((t) => String(t).trim()).filter((t) => ALLOWED_TAG_SLUGS.has(t));
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  if (!arr.length) {
+    const fb = String(fallbackCategory || "markets").trim();
+    arr = ALLOWED_TAG_SLUGS.has(fb) ? [fb] : ["markets"];
+  }
+  const seen = new Set();
+  return arr.filter((t) => (seen.has(t) ? false : (seen.add(t), true)));
+}
+
 function resolveDbPath() {
   if (process.env.DB_PATH) return process.env.DB_PATH;
   if (process.env.VERCEL) return path.join("/tmp", "blog.json");
@@ -29,13 +58,19 @@ function rowToPost(row) {
   if (!row) return null;
   const fromFile = row.image_filename ? `/uploads/blog/${row.image_filename}` : null;
   const fromUrl = row.image_url && String(row.image_url).trim() ? String(row.image_url).trim() : null;
+  const tags =
+    Array.isArray(row.tags) && row.tags.length
+      ? normalizeTags(row.tags, row.category)
+      : normalizeTags(null, row.category);
+  const category = tags[0];
   return {
     id: row.id,
     slug: row.slug,
     title: row.title,
     excerpt: row.excerpt,
     body: row.body,
-    category: row.category,
+    tags,
+    category,
     imageUrl: fromUrl || fromFile,
     image_url: fromUrl,
     image_filename: row.image_filename || null,
@@ -89,19 +124,21 @@ function nextId(posts) {
   return Math.max(...posts.map((p) => p.id)) + 1;
 }
 
-function insertPost({ title, excerpt, body, category, imageFilename, imageUrl, slugBase }) {
+function insertPost({ title, excerpt, body, category, tags, imageFilename, imageUrl, slugBase }) {
   const data = readDb();
   const base = slugBase ? slugify(slugBase) : slugify(title);
   const slug = ensureUniqueSlug(base);
   const id = nextId(data.posts);
   const now = new Date().toISOString();
+  const tagList = normalizeTags(tags, category);
   const row = {
     id,
     slug,
     title,
     excerpt: excerpt || "",
     body: body || "",
-    category: category || "markets",
+    tags: tagList,
+    category: tagList[0],
     image_filename: imageFilename || null,
     image_url: imageUrl || null,
     created_at: now,
@@ -112,7 +149,7 @@ function insertPost({ title, excerpt, body, category, imageFilename, imageUrl, s
   return rowToPost(row);
 }
 
-function updatePost(id, { title, excerpt, body, category, imageFilename, imageUrl, slug: slugOverride }) {
+function updatePost(id, { title, excerpt, body, category, tags, imageFilename, imageUrl, slug: slugOverride }) {
   const data = readDb();
   const idx = data.posts.findIndex((p) => p.id === id);
   if (idx === -1) return null;
@@ -127,13 +164,20 @@ function updatePost(id, { title, excerpt, body, category, imageFilename, imageUr
     imageFilename !== undefined ? imageFilename : existing.image_filename;
   const nextUrl =
     imageUrl !== undefined ? imageUrl : existing.image_url;
+  const tagList =
+    tags !== undefined
+      ? normalizeTags(tags, category)
+      : category !== undefined
+        ? normalizeTags(existing.tags, category)
+        : normalizeTags(existing.tags, existing.category);
   const updated = {
     ...existing,
     slug,
     title: title ?? existing.title,
     excerpt: excerpt ?? existing.excerpt,
     body: body ?? existing.body,
-    category: category ?? existing.category,
+    tags: tagList,
+    category: tagList[0],
     image_filename: nextFile,
     image_url: nextUrl,
     updated_at: new Date().toISOString(),
@@ -158,12 +202,20 @@ function insertSamplePost() {
     title: "Sample: Five signals that matter for your mutual fund",
     excerpt:
       "Preview how Perspective cards and article pages look—with a real thumbnail, title, tags, and body text.",
-    body: `This is sample content so you can check the blog listing, card layout, and full article page.
+    body: `## Why this sample exists
 
-In a real post you would expand on thesis, data sources, and clear takeaways for readers. Edit or delete this from the admin area whenever you like.
+This is **Markdown** so you can use *emphasis*, lists, and images in the article body.
 
-Blank lines in the body become separate paragraphs on the article page.`,
-    category: "markets",
+### What to try in admin
+
+- Headings with \`##\` and \`###\`
+- **Bold** and *italic*
+- Inline images, e.g.:
+
+![](https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=900&q=80)
+
+Use a public **https** image URL. The hero image is separate from inline body images.`,
+    tags: ["markets", "economy"],
     imageFilename: null,
     imageUrl:
       "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80",

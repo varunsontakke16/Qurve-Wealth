@@ -15,6 +15,23 @@ const {
   seedIfEmpty,
   ensureSamplePost,
 } = require("./db");
+const { renderMarkdown } = require("./markdown");
+
+function parseTagsFromRequest(body) {
+  const raw = body?.tags_json;
+  if (typeof raw === "string" && raw.trim()) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      /* ignore */
+    }
+  }
+  if (typeof body?.category === "string" && body.category.trim()) {
+    return [body.category.trim()];
+  }
+  return undefined;
+}
 
 const app = express();
 const ROOT = path.join(__dirname, "..");
@@ -127,7 +144,8 @@ app.get("/api/posts/:slug", (req, res) => {
   try {
     const post = getPostBySlug(req.params.slug);
     if (!post) return res.status(404).json({ error: "Not found" });
-    res.json({ post });
+    const enriched = { ...post, bodyHtml: renderMarkdown(post.body) };
+    res.json({ post: enriched });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Failed to load post" });
@@ -158,10 +176,12 @@ app.post("/api/admin/posts", authAdmin, upload.single("image"), (req, res) => {
     if (!title || typeof title !== "string") {
       return res.status(400).json({ error: "Title is required" });
     }
+    const tags = parseTagsFromRequest(req.body);
     const post = insertPost({
       title,
       excerpt,
       body,
+      tags,
       category: category || "markets",
       imageFilename: req.file ? req.file.filename : null,
       imageUrl: typeof imageUrl === "string" && imageUrl.trim() ? imageUrl.trim() : null,
@@ -181,6 +201,7 @@ app.put("/api/admin/posts/:id", authAdmin, upload.single("image"), (req, res) =>
     if (!existing) return res.status(404).json({ error: "Not found" });
 
     const { title, excerpt, body, category, slug, image_url: imageUrlBody } = req.body;
+    const tags = parseTagsFromRequest(req.body);
     let imageFilename;
     if (req.file) {
       imageFilename = req.file.filename;
@@ -199,6 +220,7 @@ app.put("/api/admin/posts/:id", authAdmin, upload.single("image"), (req, res) =>
       title: title !== undefined ? title : existing.title,
       excerpt: excerpt !== undefined ? excerpt : existing.excerpt,
       body: body !== undefined ? body : existing.body,
+      tags: tags !== undefined ? tags : undefined,
       category: category !== undefined ? category : existing.category,
       slug: slug !== undefined ? slug : undefined,
       imageFilename: req.file ? imageFilename : undefined,

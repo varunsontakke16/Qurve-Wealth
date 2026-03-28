@@ -16,19 +16,24 @@ function thumbClass(i) {
 }
 
 function renderBlogCard(post, index) {
-  const cat = post.category || "markets";
-  const label = CATEGORY_LABEL[cat] || cat;
+  const tags =
+    post.tags && post.tags.length ? post.tags : [post.category || "markets"];
+  const dataTags = escapeHtml(tags.join(" "));
+  const primary = tags[0] || "markets";
+  const tagChips = tags
+    .map((t) => `<span class="card-tag">${escapeHtml(CATEGORY_LABEL[t] || t)}</span>`)
+    .join("");
   const img = post.imageUrl
     ? `<div class="blog-card__thumb blog-card__thumb--photo" style="background-image:url('${escapeHtml(post.imageUrl)}')"></div>`
     : `<div class="blog-card__thumb ${thumbClass(index)}" role="presentation"></div>`;
   const excerpt = post.excerpt || "";
   return `
-    <article class="card blog-card reveal visible" data-category="${escapeHtml(cat)}">
+    <article class="card blog-card reveal visible" data-tags="${dataTags}" data-category="${escapeHtml(primary)}">
       <a href="post.html?slug=${encodeURIComponent(post.slug)}" class="blog-card__link">
         ${img}
         <div class="blog-card__body">
           <div class="blog-card__tags">
-            <span class="card-tag">${escapeHtml(label)}</span>
+            ${tagChips}
             <span class="card-tag card-tag--soft">Perspective</span>
           </div>
           <h3>${escapeHtml(post.title)}</h3>

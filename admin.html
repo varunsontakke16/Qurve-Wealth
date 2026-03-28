@@ -12,6 +12,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.css" />
   </head>
   <body class="admin-page">
     <nav class="top-nav">
@@ -51,7 +52,7 @@
               <thead>
                 <tr>
                   <th>Title</th>
-                  <th>Category</th>
+                  <th>Tags</th>
                   <th>Updated</th>
                   <th></th>
                 </tr>
@@ -65,6 +66,7 @@
           <h2 class="section-title" id="editor-title">New post</h2>
           <form class="tool-panel admin-editor-form" id="post-form" enctype="multipart/form-data">
             <input type="hidden" id="edit-id" name="id" value="" />
+            <input type="hidden" id="f-tags-json" name="tags_json" value="[]" />
             <div class="tool-grid">
               <div style="grid-column: 1 / -1">
                 <label for="f-title">Title</label>
@@ -74,14 +76,14 @@
                 <label for="f-slug">Slug (optional)</label>
                 <input id="f-slug" name="slug" placeholder="auto from title" />
               </div>
-              <div>
-                <label for="f-category">Category</label>
-                <select id="f-category" name="category">
-                  <option value="markets">Markets</option>
-                  <option value="economy">Economy</option>
-                  <option value="personal-finance">Personal Finance</option>
-                  <option value="consumer-behaviour">Consumer Behaviour</option>
-                </select>
+              <div class="admin-tags-field" style="grid-column: 1 / -1">
+                <span class="admin-tags-label">Tags (select one or more)</span>
+                <div class="admin-tag-grid" id="admin-tag-grid">
+                  <label class="admin-tag-option"><input type="checkbox" class="admin-tag-cb" value="markets" /> Markets</label>
+                  <label class="admin-tag-option"><input type="checkbox" class="admin-tag-cb" value="economy" /> Economy</label>
+                  <label class="admin-tag-option"><input type="checkbox" class="admin-tag-cb" value="personal-finance" /> Personal finance</label>
+                  <label class="admin-tag-option"><input type="checkbox" class="admin-tag-cb" value="consumer-behaviour" /> Consumer behaviour</label>
+                </div>
               </div>
               <div style="grid-column: 1 / -1">
                 <label for="f-image-url">Image URL (optional)</label>
@@ -101,8 +103,9 @@
                 <textarea id="f-excerpt" name="excerpt" rows="2" placeholder="Short summary for cards"></textarea>
               </div>
               <div style="grid-column: 1 / -1">
-                <label for="f-body">Body</label>
-                <textarea id="f-body" name="body" rows="14" placeholder="Full article (plain text; blank lines become paragraphs)"></textarea>
+                <label for="f-body">Body (Markdown)</label>
+                <textarea id="f-body" name="body" rows="14" placeholder="## Heading&#10;&#10;**Bold**, *italic*, lists, and images: &#10;&#10;![](https://example.com/image.jpg)"></textarea>
+                <p class="muted admin-hint">Use the toolbar for headings and links. Images must use a public <code>https</code> URL in Markdown.</p>
               </div>
             </div>
             <div class="admin-form-actions">
@@ -120,6 +123,7 @@
         <p class="muted">Admin area — do not share this URL publicly.</p>
       </div>
     </footer>
+    <script src="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.js"></script>
     <script src="admin.js"></script>
   </body>
 </html>
