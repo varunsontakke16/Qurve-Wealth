@@ -34,6 +34,11 @@ function bodyToHtml(text) {
     .join("");
 }
 
+function apiUrl(path) {
+  const base = (typeof window !== "undefined" && window.location && window.location.origin) || "";
+  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 async function loadPost() {
   const params = new URLSearchParams(window.location.search);
   const slug = params.get("slug");
@@ -74,9 +79,14 @@ async function loadPost() {
     loading.classList.add("hidden");
     root.classList.remove("hidden");
   } catch (e) {
+    clearTimeout(timeoutId);
     loading.classList.add("hidden");
     err.classList.remove("hidden");
-    err.innerHTML = `<p>${escapeHtml(e.message)}</p><p class="muted">Open this page via the dev server (<code>npm start</code>) and use a valid link from Perspective.</p>`;
+    const hint =
+      e.name === "AbortError"
+        ? 'Request timed out. Check <a href="/api/health">/api/health</a> on this domain.'
+        : escapeHtml(e.message || "Error");
+    err.innerHTML = `<p>${hint}</p><p class="muted">Use a valid link from Perspective. If you deploy on Vercel, ensure the API is deployed and env vars are set.</p>`;
   }
 }
 

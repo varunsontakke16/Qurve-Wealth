@@ -89,3 +89,10 @@ Uploaded images are stored under `uploads/blog/` and served at `/uploads/blog/..
 
 - **Local:** `npm start` → `data/blog.json` + `uploads/blog/` (persistent).
 - **Vercel:** same API paths; use dashboard env vars; prefer **Image URL** for hero images.
+
+### Blog stuck on “Loading articles” (Vercel)
+
+1. Open **`https://YOUR-DOMAIN.vercel.app/api/health`** — you should see `{"ok":true,"vercel":true}`.
+2. Open **`/api/posts`** — you should see JSON with a `posts` array.
+3. If those fail, the serverless function is not routing correctly: redeploy after pulling the latest `vercel.json` and `api/index.js` (Express is exported directly; path fix middleware runs on Vercel).
+4. Confirm **Project → Settings → Environment Variables** includes `ADMIN_PASSWORD` and `JWT_SECRET`, then **Redeploy**.

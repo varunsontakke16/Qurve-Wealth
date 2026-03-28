@@ -37,8 +37,44 @@ if (!IS_VERCEL) {
 }
 
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-seedIfEmpty();
-ensureSamplePost();
+try {
+  seedIfEmpty();
+  ensureSamplePost();
+} catch (e) {
+  console.error("[qurve] DB seed failed:", e);
+}
+
+/** Vercel rewrites /api/* → serverless; restore path so Express routes match. */
+if (IS_VERCEL) {
+  app.use((req, _res, next) => {
+    if (typeof req.originalUrl === "string" && req.originalUrl.startsWith("/api")) {
+      req.url = req.originalUrl;
+    } else {
+      const h = req.headers;
+      const raw =
+        h["x-vercel-original-url"] ||
+        h["x-original-url"] ||
+        h["x-invoke-path"] ||
+        h["x-forwarded-uri"] ||
+        h["x-url"];
+      if (typeof raw === "string" && raw.startsWith("/api")) {
+        try {
+          const u = new URL(raw, "http://localhost");
+          req.url = u.pathname + u.search;
+        } catch {
+          const q = raw.includes("?") ? `?${raw.split("?").slice(1).join("?")}` : "";
+          req.url = raw.split("?")[0] + q;
+        }
+      } else if ((req.url === "/" || req.url === "/api" || req.url === "") && typeof h["x-forwarded-path"] === "string") {
+        const pathFromFwd = h["x-forwarded-path"];
+        if (pathFromFwd.startsWith("/api")) {
+          req.url = pathFromFwd + (req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "");
+        }
+      }
+    }
+    next();
+  });
+}
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
@@ -59,6 +95,10 @@ const upload = multer({
 });
 
 app.use(express.json({ limit: "2mb" }));
+
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true, vercel: IS_VERCEL });
+});
 
 function authAdmin(req, res, next) {
   const h = req.headers.authorization || "";

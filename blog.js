@@ -39,6 +39,11 @@ function renderBlogCard(post, index) {
   `;
 }
 
+function apiUrl(path) {
+  const base = (typeof window !== "undefined" && window.location && window.location.origin) || "";
+  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 async function loadBlogList() {
   const container = document.getElementById("blog-list");
   const fallback = document.getElementById("blog-list-fallback");
@@ -47,9 +52,19 @@ async function loadBlogList() {
   container.innerHTML = `<p class="muted blog-list-loading">Loading articles…</p>`;
   if (fallback) fallback.classList.add("hidden");
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
+
   try {
-    const res = await fetch("/api/posts");
-    if (!res.ok) throw new Error("Could not load posts");
+    const res = await fetch(apiUrl("/api/posts"), {
+      signal: controller.signal,
+      cache: "no-store",
+      credentials: "same-origin",
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) {
+      throw new Error(`Could not load posts (${res.status})`);
+    }
     const data = await res.json();
     const posts = data.posts || [];
     if (!posts.length) {
@@ -60,14 +75,18 @@ async function loadBlogList() {
     container.innerHTML = posts.map((p, i) => renderBlogCard(p, i)).join("");
     if (fallback) fallback.classList.add("hidden");
   } catch (e) {
+    clearTimeout(timeoutId);
     console.warn(e);
+    const msg =
+      e.name === "AbortError"
+        ? "Request timed out. Check that /api/posts works on your host (open /api/health in a new tab)."
+        : e.message || "Network error";
     container.innerHTML = "";
     if (fallback) {
       fallback.classList.remove("hidden");
-      fallback.innerHTML =
-        "Could not load live articles. Run <code>npm start</code> and open this site from <code>http://127.0.0.1:3000</code> (or your server URL) so the blog API is available.";
+      fallback.innerHTML = `Could not load articles: ${escapeHtml(msg)} Try <a href="/api/health">/api/health</a> and <a href="/api/posts">/api/posts</a>. On Vercel, confirm env vars and redeploy.`;
     } else {
-      container.innerHTML = `<p class="muted">${escapeHtml(e.message)}</p>`;
+      container.innerHTML = `<p class="muted">${escapeHtml(msg)}</p>`;
     }
   }
 }
