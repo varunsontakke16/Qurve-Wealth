@@ -323,8 +323,39 @@ body.page-out {
   font-weight: 600;
 }
 
-.brand span {
+.brand .brand-accent {
   color: var(--accent);
+}
+
+.brand-animated {
+  position: relative;
+  display: inline-block;
+  line-height: 1.1;
+}
+
+.brand-full,
+.brand-compact {
+  display: inline-block;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.brand-compact {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+}
+
+.top-nav.compact .brand-full {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.top-nav.compact .brand-compact {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .nav-links {

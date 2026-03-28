@@ -218,6 +218,36 @@ function setupFinanceToolDemo() {
   });
 }
 
+function setupBrandScrollSwap() {
+  const nav = document.querySelector(".top-nav");
+  if (!nav) return;
+
+  const brand = nav.querySelector(".brand-animated");
+  if (!brand) return;
+
+  const threshold = 60; // px scrolled
+  let rafId = null;
+
+  const update = () => {
+    const compact = window.scrollY > threshold;
+    nav.classList.toggle("compact", compact);
+  };
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        update();
+      });
+    },
+    { passive: true }
+  );
+
+  update();
+}
+
 function setupForms() {
   const forms = document.querySelectorAll("form");
   forms.forEach((form) => {
@@ -243,4 +273,5 @@ document.addEventListener("DOMContentLoaded", () => {
   setupHeroParallax();
   setupFinanceToolDemo();
   setupForms();
+  setupBrandScrollSwap();
 });
