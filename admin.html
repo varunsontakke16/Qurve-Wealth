@@ -40,10 +40,11 @@
       </section>
 
       <div id="admin-app" class="hidden">
-        <section class="section">
+        <section class="section" id="posts-section">
           <div class="admin-toolbar">
             <h2 class="section-title" style="margin: 0">Posts</h2>
             <button class="btn btn-primary" type="button" id="btn-new-post">New post</button>
+            <button class="btn btn-secondary" type="button" id="btn-show-responses">Responses</button>
             <button class="btn btn-secondary" type="button" id="btn-logout">Sign out</button>
           </div>
           <p class="muted admin-msg" id="admin-status"></p>
@@ -58,6 +59,30 @@
                 </tr>
               </thead>
               <tbody id="posts-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section hidden" id="responses-section">
+          <div class="admin-toolbar">
+            <h2 class="section-title" style="margin: 0">Invest Now Responses</h2>
+            <button class="btn btn-secondary" type="button" id="btn-back-posts">Back to Posts</button>
+          </div>
+          <p class="muted admin-msg" id="responses-status"></p>
+          <div class="admin-table-wrap tool-panel">
+            <table class="admin-table" id="responses-table">
+              <thead>
+                <tr>
+                  <th>Full name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Investment</th>
+                  <th>Message</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="responses-tbody"></tbody>
             </table>
           </div>
         </section>

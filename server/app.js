@@ -16,6 +16,11 @@ const {
   ensureSamplePost,
 } = require("./db");
 const { renderMarkdown } = require("./markdown");
+const {
+  appendResponse,
+  listResponses,
+  markResponseCompleted,
+} = require("./investResponses");
 
 function parseTagsFromRequest(body) {
   const raw = body?.tags_json;
@@ -117,6 +122,55 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true, vercel: IS_VERCEL });
 });
 
+function validateInvestPayload(body) {
+  const errors = [];
+  const fullName = typeof body?.fullName === "string" ? body.fullName.trim() : "";
+  const email = typeof body?.email === "string" ? body.email.trim() : "";
+  const phone = typeof body?.phone === "string" ? body.phone.trim() : "";
+  const investmentValue = Number(body?.investmentValue);
+  const message = typeof body?.message === "string" ? body.message.trim() : "";
+
+  if (fullName.length < 3) errors.push("Full name is required.");
+  if (!/^[a-zA-Z\s.'-]+$/.test(fullName)) errors.push("Full name format is invalid.");
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Email is invalid.");
+
+  const digits = phone.replace(/[^\d]/g, "");
+  if (digits.length < 10 || digits.length > 15) errors.push("Phone is invalid (10-15 digits).");
+
+  if (!Number.isFinite(investmentValue)) errors.push("Investment value is required.");
+  if (Number.isFinite(investmentValue) && (investmentValue < 10000 || investmentValue > 60000000)) {
+    errors.push("Investment value must be between 10k and 5cr+.");
+  }
+
+  if (message.length < 15) errors.push("Please share a bit more detail in your message.");
+
+  return {
+    ok: errors.length === 0,
+    errors,
+    normalized: {
+      fullName,
+      email,
+      phone: digits,
+      investmentValue: Math.round(investmentValue),
+      message,
+    },
+  };
+}
+
+// Public endpoint used by the "Invest Now" form.
+app.post("/api/invest", (req, res) => {
+  try {
+    const v = validateInvestPayload(req.body || {});
+    if (!v.ok) return res.status(400).json({ error: v.errors[0] || "Invalid input" });
+    const response = appendResponse(v.normalized);
+    return res.status(201).json({ ok: true, response });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: e.message || "Submission failed" });
+  }
+});
+
 function authAdmin(req, res, next) {
   const h = req.headers.authorization || "";
   const token = h.startsWith("Bearer ") ? h.slice(7) : null;
@@ -130,6 +184,30 @@ function authAdmin(req, res, next) {
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 }
+
+// Admin endpoints for the Invest Now CSV-backed responses.
+app.get("/api/admin/invest", authAdmin, (_req, res) => {
+  try {
+    res.json({ responses: listResponses() });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to load responses" });
+  }
+});
+
+app.put("/api/admin/invest/:id/complete", authAdmin, (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim();
+    if (!id) return res.status(400).json({ error: "Missing id" });
+    const completed = req.body?.completed === false ? false : true;
+    const response = markResponseCompleted(id, completed);
+    if (!response) return res.status(404).json({ error: "Not found" });
+    res.json({ response });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message || "Update failed" });
+  }
+});
 
 app.get("/api/posts", (_req, res) => {
   try {

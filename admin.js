@@ -35,6 +35,12 @@ const adminApp = document.getElementById("admin-app");
 const postsTbody = document.getElementById("posts-tbody");
 const adminStatus = document.getElementById("admin-status");
 const btnNew = document.getElementById("btn-new-post");
+const postsSection = document.getElementById("posts-section");
+const btnShowResponses = document.getElementById("btn-show-responses");
+const responsesSection = document.getElementById("responses-section");
+const btnBackPosts = document.getElementById("btn-back-posts");
+const responsesTbody = document.getElementById("responses-tbody");
+const responsesStatus = document.getElementById("responses-status");
 const btnLogout = document.getElementById("btn-logout");
 const editorSection = document.getElementById("editor-section");
 const postForm = document.getElementById("post-form");
@@ -44,6 +50,7 @@ const btnCancel = document.getElementById("btn-cancel-edit");
 const tagsJsonInput = document.getElementById("f-tags-json");
 
 let bodyEditor = null;
+let responsesLoaded = false;
 
 function ensureBodyEditor() {
   if (bodyEditor) return bodyEditor;
@@ -130,6 +137,75 @@ async function loadPosts() {
   });
 }
 
+async function loadResponses() {
+  if (!responsesTbody || !responsesStatus) return;
+  responsesStatus.textContent = "Loading…";
+  const { responses } = await api("/api/admin/invest");
+  responsesTbody.innerHTML = "";
+
+  responsesStatus.textContent = `${responses.length} response(s)`;
+
+  responses.forEach((r) => {
+    const investment =
+      typeof r.investmentValue === "number"
+        ? `₹${r.investmentValue.toLocaleString("en-IN")}`
+        : escapeHtml(String(r.investmentValue ?? ""));
+
+    const messageHtml = escapeHtml(r.message || "").replace(/\n/g, "<br />");
+    const statusHtml = r.completed ? '<span class="muted">Completed</span>' : "";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${escapeHtml(r.fullName || "")}</td>
+      <td>${escapeHtml(r.email || "")}</td>
+      <td>${escapeHtml(r.phone || "")}</td>
+      <td>${investment}</td>
+      <td style="max-width: 360px">${messageHtml}</td>
+      <td>${statusHtml}</td>
+      <td class="admin-row-actions">
+        <button type="button" class="filter-btn" data-complete="${escapeHtml(r.id)}" ${
+      r.completed ? "disabled" : ""
+    }>
+          ${r.completed ? "Done" : "Mark completed"}
+        </button>
+      </td>
+    `;
+    responsesTbody.appendChild(tr);
+  });
+
+  responsesTbody.querySelectorAll("[data-complete]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.complete;
+      if (!id) return;
+      try {
+        await api(`/api/admin/invest/${encodeURIComponent(id)}/complete`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ completed: true }),
+        });
+        await loadResponses();
+      } catch (e) {
+        alert(e.message);
+      }
+    });
+  });
+
+  responsesLoaded = true;
+}
+
+function showPosts() {
+  postsSection.classList.remove("hidden");
+  responsesSection.classList.add("hidden");
+  editorSection.classList.add("hidden");
+}
+
+function showResponses() {
+  postsSection.classList.add("hidden");
+  responsesSection.classList.remove("hidden");
+  editorSection.classList.add("hidden");
+  if (!responsesLoaded) loadResponses().catch(() => {});
+}
+
 function escapeHtml(s) {
   const d = document.createElement("div");
   d.textContent = s;
@@ -198,6 +274,9 @@ btnLogout.addEventListener("click", () => {
 
 btnNew.addEventListener("click", () => startNew());
 
+btnShowResponses?.addEventListener("click", () => showResponses());
+btnBackPosts?.addEventListener("click", () => showPosts());
+
 btnCancel.addEventListener("click", () => {
   editorSection.classList.add("hidden");
   resetForm();
@@ -242,3 +321,4 @@ if (getToken()) {
     showLogin();
   });
 }
+

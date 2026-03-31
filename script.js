@@ -267,16 +267,188 @@ function setupBrandScrollSwap() {
   update();
 }
 
+function formatRupees(v) {
+  try {
+    return `₹${new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(v)}`;
+  } catch {
+    return `₹${v}`;
+  }
+}
+
+function syncInvestNowRange(form) {
+  const range = form.querySelector("#investment-range");
+  const hidden = form.querySelector("#investment-value");
+  const display = form.querySelector("#investment-value-display");
+  if (!range || !hidden || !display) return;
+  const v = Number(range.value);
+  const clamped = Number.isFinite(v) ? v : Number(hidden.value) || 0;
+  hidden.value = String(clamped);
+  display.textContent = clamped >= 50000001 ? "5Cr+" : formatRupees(clamped);
+}
+
+function validateInvestNowForm(form) {
+  const fullNameInput = form.querySelector("#full-name");
+  const emailInput = form.querySelector("#email");
+  const phoneInput = form.querySelector("#phone");
+  const rangeInput = form.querySelector("#investment-range");
+  const hiddenValue = form.querySelector("#investment-value");
+  const messageInput = form.querySelector("#message");
+
+  const setError = (key, text) => {
+    const el = form.querySelector(`[data-error-for="${key}"]`);
+    if (!el) return;
+    el.textContent = text || "";
+  };
+
+  const clearErrors = () => {
+    setError("fullName", "");
+    setError("email", "");
+    setError("phone", "");
+    setError("investmentValue", "");
+    setError("message", "");
+    [fullNameInput, emailInput, phoneInput, messageInput, hiddenValue].forEach((x) => {
+      if (!x) return;
+      if (x === hiddenValue) return;
+      x.removeAttribute("aria-invalid");
+    });
+    rangeInput?.removeAttribute("aria-invalid");
+  };
+
+  clearErrors();
+
+  const errors = {};
+
+  const fullName = (fullNameInput?.value || "").trim();
+  if (fullName.length < 3) {
+    errors.fullName = "Please enter your full name.";
+  } else if (!/^[a-zA-Z\s.'-]+$/.test(fullName)) {
+    errors.fullName = "Name can only include letters, spaces, and . - ' characters.";
+  }
+
+  const email = (emailInput?.value || "").trim();
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (!emailOk) {
+    errors.email = "Please enter a valid email address.";
+  }
+
+  const rawPhone = (phoneInput?.value || "").trim();
+  const digits = rawPhone.replace(/[^\d]/g, "");
+  if (digits.length < 10 || digits.length > 15) {
+    errors.phone = "Please enter a valid phone number (10 to 15 digits).";
+  }
+
+  const investmentValue = Number(hiddenValue?.value);
+  if (!Number.isFinite(investmentValue) || investmentValue < 10000 || investmentValue > 60000000) {
+    errors.investmentValue = "Please select a valid investment value (min 10k, max 5cr+).";
+  }
+
+  const message = (messageInput?.value || "").trim();
+  if (message.length < 15) {
+    errors.message = "Please share a bit more detail (at least 15 characters).";
+  }
+
+  if (Object.keys(errors).length) {
+    setError("fullName", errors.fullName);
+    setError("email", errors.email);
+    setError("phone", errors.phone);
+    setError("investmentValue", errors.investmentValue);
+    setError("message", errors.message);
+
+    if (errors.fullName) fullNameInput?.setAttribute("aria-invalid", "true");
+    if (errors.email) emailInput?.setAttribute("aria-invalid", "true");
+    if (errors.phone) phoneInput?.setAttribute("aria-invalid", "true");
+    if (errors.message) messageInput?.setAttribute("aria-invalid", "true");
+    if (errors.investmentValue) rangeInput?.setAttribute("aria-invalid", "true");
+    return false;
+  }
+
+  return true;
+}
+
+function setupInvestNowForm() {
+  const form = document.querySelector("#invest-form");
+  if (!form) return;
+
+  const range = form.querySelector("#investment-range");
+  if (range) {
+    range.addEventListener("input", () => syncInvestNowRange(form), { passive: true });
+  }
+
+  // Validate as user types (so each field gets feedback).
+  const fields = ["#full-name", "#email", "#phone", "#message", "#investment-range"];
+  fields.forEach((sel) => {
+    const el = form.querySelector(sel);
+    if (!el) return;
+    el.addEventListener("input", () => validateInvestNowForm(form), { passive: true });
+    el.addEventListener("blur", () => validateInvestNowForm(form));
+  });
+
+  syncInvestNowRange(form);
+}
+
+function collectInvestNowPayload(form) {
+  const fullNameInput = form.querySelector("#full-name");
+  const emailInput = form.querySelector("#email");
+  const phoneInput = form.querySelector("#phone");
+  const hiddenValue = form.querySelector("#investment-value");
+  const messageInput = form.querySelector("#message");
+
+  const digits = (phoneInput?.value || "").trim().replace(/[^\d]/g, "");
+
+  return {
+    fullName: (fullNameInput?.value || "").trim(),
+    email: (emailInput?.value || "").trim(),
+    phone: digits,
+    investmentValue: Number(hiddenValue?.value),
+    message: (messageInput?.value || "").trim(),
+  };
+}
+
+async function submitInvestNow(form) {
+  const payload = collectInvestNowPayload(form);
+  const res = await fetch("/api/invest", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "Submission failed");
+  return data.response;
+}
+
 function setupForms() {
   const forms = document.querySelectorAll("form");
   forms.forEach((form) => {
-    form.addEventListener("submit", (event) => {
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const message = form.querySelector("[data-form-message]");
-      if (message) {
-        message.textContent = "Thanks. Your details were captured. A strategist from Qurve Wealth will reach out soon.";
+
+      let ok = true;
+      if (form.id === "invest-form") {
+        // Keep errors visible and stop the success message.
+        ok = validateInvestNowForm(form);
+        if (!ok) {
+          if (message) message.textContent = "";
+          return;
+        }
+
+        if (message) message.textContent = "Submitting…";
+        try {
+          await submitInvestNow(form);
+        } catch (e) {
+          if (message) message.textContent = e.message || "Submission failed";
+          return;
+        }
       }
-      form.reset();
+
+      if (ok) {
+        if (message) {
+          message.textContent =
+            "Thanks. Your details were captured. A strategist from Qurve Wealth will reach out soon.";
+        }
+        form.reset();
+        if (form.id === "invest-form") syncInvestNowRange(form);
+      }
     });
   });
 }
@@ -350,6 +522,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupPageTransitions();
   setupHeroParallax();
   setupSectionOrbs("#qv-how-it-works", [".orb-a", ".orb-b", ".orb-c", ".orb-d"]);
+  setupInvestNowForm();
   setupFinanceToolDemo();
   setupForms();
   setupBrandScrollSwap();
