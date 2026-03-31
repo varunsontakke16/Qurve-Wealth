@@ -1110,11 +1110,56 @@ body.page-out {
   border-color: rgba(176, 38, 30, 0.6);
 }
 
-#invest-form .invest-range input[type="range"] {
-  padding: 0;
+#invest-form .invest-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-top: 0.35rem;
+  justify-content: flex-start;
 }
 
-#invest-form .invest-range-meta {
+#invest-form .invest-radio {
+  flex: 1 1 220px;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.25;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(114, 170, 134, 0.34);
+  background: rgba(245, 252, 248, 0.78);
+  box-shadow: 0 10px 22px rgba(27, 73, 48, 0.05);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  user-select: none;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+#invest-form .invest-radio input[type="radio"] {
+  margin: 0;
+  width: auto !important;
+  flex: 0 0 auto;
+  padding: 0 !important;
+  border-radius: 0;
+  background: transparent;
+}
+
+#invest-form .invest-radio:hover {
+  transform: translateY(-1px);
+  border-color: rgba(78, 149, 110, 0.5);
+}
+
+/* Selected card */
+#invest-form .invest-radio:has(input[type="radio"]:checked) {
+  border-color: rgba(31, 111, 71, 0.55);
+  box-shadow: 0 16px 30px rgba(27, 73, 48, 0.08);
+  background: rgba(237, 247, 239, 0.92);
+}
+
+#invest-form .invest-radio-meta {
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
@@ -1126,6 +1171,12 @@ body.page-out {
   color: var(--ink);
   font-weight: 800;
   letter-spacing: -0.01em;
+}
+
+@media (max-width: 640px) {
+  #invest-form .invest-radio-group {
+    gap: 0.6rem;
+  }
 }
 
 .tool-grid {

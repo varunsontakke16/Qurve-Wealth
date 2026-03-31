@@ -64,29 +64,39 @@
 
             <div style="grid-column: 1 / -1">
               <label for="investment-range">Total value of investment</label>
-              <div class="invest-range">
-                <input
-                  id="investment-range"
-                  name="investmentRange"
-                  type="range"
-                  min="10000"
-                  max="60000000"
-                  step="10000"
-                  value="100000"
-                  aria-describedby="investment-help"
-                  required
-                />
-                <input id="investment-value" name="investmentValue" type="hidden" value="100000" />
-                <div class="invest-range-meta">
-                  <span class="muted">Min: 10k</span>
-                  <strong id="investment-value-display">₹ 1,00,000</strong>
-                  <span class="muted">Max: 5cr+</span>
-                </div>
-                <div id="investment-help" class="muted" style="margin-top: 0.25rem; font-size: 0.85rem">
-                  Drag the bar to select your approximate current investment value.
-                </div>
-                <span class="field-error" data-error-for="investmentValue" aria-live="polite"></span>
+              <input id="investment-value" name="investmentValue" type="hidden" value="1250000" />
+              <div class="invest-radio-group" role="radiogroup" aria-label="Total value of investment">
+                <label class="invest-radio">
+                  <input type="radio" name="investmentBracket" value="lt25" required checked />
+                  Less than 25lakhs
+                </label>
+                <label class="invest-radio">
+                  <input type="radio" name="investmentBracket" value="25_50" />
+                  25lakhs to 50lakhs
+                </label>
+                <label class="invest-radio">
+                  <input type="radio" name="investmentBracket" value="50_75" />
+                  50lakhs to 75lakhs
+                </label>
+                <label class="invest-radio">
+                  <input type="radio" name="investmentBracket" value="75_100" />
+                  75lakhs to 1crore
+                </label>
+                <label class="invest-radio">
+                  <input type="radio" name="investmentBracket" value="1_3" />
+                  1crore to 3crores
+                </label>
+                <label class="invest-radio">
+                  <input type="radio" name="investmentBracket" value="3_5" />
+                  3crores to 5crores
+                </label>
               </div>
+
+              <div id="investment-help" class="muted" style="margin-top: 0.25rem; font-size: 0.85rem">
+                Choose the closest bracket for your current total investment value.
+              </div>
+
+              <span class="field-error" data-error-for="investmentValue" aria-live="polite"></span>
             </div>
           </div>
 

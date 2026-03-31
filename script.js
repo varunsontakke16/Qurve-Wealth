@@ -276,21 +276,32 @@ function formatRupees(v) {
 }
 
 function syncInvestNowRange(form) {
-  const range = form.querySelector("#investment-range");
   const hidden = form.querySelector("#investment-value");
   const display = form.querySelector("#investment-value-display");
-  if (!range || !hidden || !display) return;
-  const v = Number(range.value);
-  const clamped = Number.isFinite(v) ? v : Number(hidden.value) || 0;
+  if (!hidden) return;
+
+  const selected = form.querySelector('input[name="investmentBracket"]:checked');
+  const map = {
+    lt25: 1250000,
+    "25_50": 3750000,
+    "50_75": 6250000,
+    "75_100": 8750000,
+    "1_3": 20000000,
+    "3_5": 40000000,
+  };
+  const bracketVal = map[selected?.value];
+  const clamped = Number.isFinite(bracketVal) ? bracketVal : Number(hidden.value) || 0;
+
   hidden.value = String(clamped);
-  display.textContent = clamped >= 50000001 ? "5Cr+" : formatRupees(clamped);
+  if (display) display.textContent = clamped >= 50000001 ? "5Cr+" : formatRupees(clamped);
 }
 
 function validateInvestNowForm(form) {
   const fullNameInput = form.querySelector("#full-name");
   const emailInput = form.querySelector("#email");
   const phoneInput = form.querySelector("#phone");
-  const rangeInput = form.querySelector("#investment-range");
+  const investmentRadios = form.querySelectorAll('input[name="investmentBracket"]');
+  const selectedRadio = form.querySelector('input[name="investmentBracket"]:checked');
   const hiddenValue = form.querySelector("#investment-value");
   const messageInput = form.querySelector("#message");
 
@@ -311,7 +322,7 @@ function validateInvestNowForm(form) {
       if (x === hiddenValue) return;
       x.removeAttribute("aria-invalid");
     });
-    rangeInput?.removeAttribute("aria-invalid");
+    investmentRadios.forEach((r) => r.removeAttribute("aria-invalid"));
   };
 
   clearErrors();
@@ -338,7 +349,10 @@ function validateInvestNowForm(form) {
   }
 
   const investmentValue = Number(hiddenValue?.value);
-  if (!Number.isFinite(investmentValue) || investmentValue < 10000 || investmentValue > 60000000) {
+  const selected = Boolean(selectedRadio);
+  if (!selected) {
+    errors.investmentValue = "Please select your investment bracket.";
+  } else if (!Number.isFinite(investmentValue) || investmentValue < 10000 || investmentValue > 60000000) {
     errors.investmentValue = "Please select a valid investment value (min 10k, max 5cr+).";
   }
 
@@ -358,7 +372,7 @@ function validateInvestNowForm(form) {
     if (errors.email) emailInput?.setAttribute("aria-invalid", "true");
     if (errors.phone) phoneInput?.setAttribute("aria-invalid", "true");
     if (errors.message) messageInput?.setAttribute("aria-invalid", "true");
-    if (errors.investmentValue) rangeInput?.setAttribute("aria-invalid", "true");
+    if (errors.investmentValue) investmentRadios.forEach((r) => r.setAttribute("aria-invalid", "true"));
     return false;
   }
 
@@ -369,14 +383,16 @@ function setupInvestNowForm() {
   const form = document.querySelector("#invest-form");
   if (!form) return;
 
-  const range = form.querySelector("#investment-range");
-  if (range) {
-    range.addEventListener("input", () => syncInvestNowRange(form), { passive: true });
-  }
+  const radios = form.querySelectorAll('input[name="investmentBracket"]');
+  radios.forEach((r) => {
+    r.addEventListener("change", () => {
+      syncInvestNowRange(form);
+      validateInvestNowForm(form);
+    });
+  });
 
   // Validate as user types (so each field gets feedback).
-  const fields = ["#full-name", "#email", "#phone", "#message", "#investment-range"];
-  fields.forEach((sel) => {
+  ["#full-name", "#email", "#phone", "#message"].forEach((sel) => {
     const el = form.querySelector(sel);
     if (!el) return;
     el.addEventListener("input", () => validateInvestNowForm(form), { passive: true });
