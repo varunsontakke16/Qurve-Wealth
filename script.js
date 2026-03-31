@@ -191,6 +191,24 @@ function setupHeroParallax() {
   });
 }
 
+function setupSectionOrbs(sectionSelector, orbSelectors) {
+  const section = document.querySelector(sectionSelector);
+  if (!section) return;
+  const orbs = orbSelectors.map((sel) => section.querySelector(sel)).filter(Boolean);
+  if (orbs.length < 2) return;
+
+  section.addEventListener("mousemove", (event) => {
+    const rect = section.getBoundingClientRect();
+    const x = event.clientX - rect.left - rect.width / 2;
+    const y = event.clientY - rect.top - rect.height / 2;
+    orbs.forEach((orb, i) => {
+      const depth = 0.018 + i * 0.008;
+      const dir = i % 2 === 0 ? 1 : -1;
+      orb.style.transform = `translate(${x * depth * dir}px, ${y * depth * dir}px)`;
+    });
+  });
+}
+
 function setupFinanceToolDemo() {
   const runBtn = document.querySelector("[data-run-tool]");
   const output = document.querySelector("[data-tool-output]");
@@ -263,15 +281,75 @@ function setupForms() {
   });
 }
 
+function setupQurveWayPhilosophy() {
+  const staggerWrap = document.querySelector("[data-qv-stagger]");
+  const cards = document.querySelectorAll("[data-qv-reveal]");
+  if (staggerWrap && cards.length) {
+    cards.forEach((card, i) => {
+      card.style.setProperty("--qv-stagger", `${i * 95}ms`);
+    });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-in");
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.16 }
+    );
+    cards.forEach((c) => observer.observe(c));
+  }
+
+  const timeline = document.querySelector("[data-qv-timeline]");
+  const steps = document.querySelectorAll("[data-qv-step]");
+  if (!timeline || !steps.length) return;
+
+  const stepObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-in");
+        stepObserver.unobserve(entry.target);
+      });
+    },
+    { threshold: 0.32 }
+  );
+  steps.forEach((s) => stepObserver.observe(s));
+
+  let raf = null;
+  const updateLine = () => {
+    raf = null;
+    const rect = timeline.getBoundingClientRect();
+    const vh = window.innerHeight || 800;
+    const start = rect.top + vh * 0.22;
+    const end = rect.bottom - vh * 0.28;
+    const raw = (vh - start) / Math.max(1, end - start);
+    const clamped = Math.max(0, Math.min(1, raw));
+    timeline.style.setProperty("--qv-progress", clamped.toFixed(4));
+  };
+
+  const onScroll = () => {
+    if (raf) return;
+    raf = requestAnimationFrame(updateLine);
+  };
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll, { passive: true });
+  updateLine();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   document.body.classList.add("page-ready");
   setupRotatingHeadline();
   setupRevealOnScroll();
   setupCounters();
   setupBlogFilters();
+  setupQurveWayPhilosophy();
   setupCustomCursor();
   setupPageTransitions();
   setupHeroParallax();
+  setupSectionOrbs("#qv-how-it-works", [".orb-a", ".orb-b", ".orb-c", ".orb-d"]);
   setupFinanceToolDemo();
   setupForms();
   setupBrandScrollSwap();
