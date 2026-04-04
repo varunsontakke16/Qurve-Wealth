@@ -441,6 +441,22 @@ body.page-out {
   background: radial-gradient(circle at 50% 50%, rgba(112, 191, 141, 0.24), rgba(60, 116, 82, 0.04));
 }
 
+.hero-orb.orb-5 {
+  width: 190px;
+  height: 190px;
+  left: -30px;
+  top: 50px;
+  background: radial-gradient(circle at 40% 40%, rgba(133, 211, 160, 0.35), rgba(63, 128, 92, 0.05));
+}
+
+.hero-orb.orb-6 {
+  width: 130px;
+  height: 130px;
+  left: 18%;
+  top: 260px;
+  background: radial-gradient(circle at 60% 60%, rgba(148, 214, 171, 0.25), rgba(74, 126, 92, 0.04));
+}
+
 .eyebrow {
   color: var(--accent);
   letter-spacing: 0.14em;
@@ -716,18 +732,27 @@ body.page-out {
   left: 50%;
   width: 340px;
   height: 420px;
-  background: linear-gradient(145deg, #184f33, #0f3521);
   border: 1px solid rgba(138, 194, 162, 0.25);
   border-radius: 20px;
   padding: 2rem;
-  color: #fff;
+  color: var(--ink);
   display: flex;
   flex-direction: column;
   transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease, z-index 0s 0.3s;
   will-change: transform, opacity;
-  box-shadow: 0 20px 40px rgba(6, 36, 24, 0.5);
+  box-shadow: 0 15px 35px rgba(27, 73, 48, 0.12);
   text-align: center;
   pointer-events: none;
+}
+
+.carousel-card.card-1 {
+  background: linear-gradient(145deg, #eff7f2, #dcedea);
+}
+.carousel-card.card-2 {
+  background: linear-gradient(145deg, #f5fbf7, #e8f5e9);
+}
+.carousel-card.card-3 {
+  background: linear-gradient(145deg, #f0fdf4, #dcfce7);
 }
 
 /* Make active cards interactable if needed, otherwise no pointer events to prevent dragging issues */
@@ -812,14 +837,14 @@ body.page-out {
   margin-top: 1.5rem;
   font-size: 1.6rem;
   font-family: "Playfair Display", serif;
-  color: #fff;
+  color: var(--ink);
   margin-bottom: 0.8rem;
 }
 
 .carousel-card-text {
   font-size: 0.95rem;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--muted);
   margin: 0;
 }
 
@@ -847,7 +872,7 @@ body.page-out {
   left: 0;
   width: 150px;
   height: 2px;
-  background: rgba(160, 225, 185, 0.8);
+  background: #278052;
   transform: rotate(-15deg);
   transform-origin: left center;
 }
@@ -855,10 +880,10 @@ body.page-out {
 .viz-point {
   width: 10px;
   height: 10px;
-  background: #fff;
+  background: #1f7a4f;
   border-radius: 50%;
   position: absolute;
-  box-shadow: 0 0 10px rgba(255,255,255,0.6);
+  box-shadow: 0 0 8px rgba(31,122,79,0.3);
 }
 
 .viz-point.p1 { left: 10px; top: 37.5px; }
@@ -875,7 +900,7 @@ body.page-out {
 
 .viz-bar {
   width: 16px;
-  background: rgba(160, 225, 185, 0.8);
+  background: #1f7a4f;
   border-radius: 4px 4px 0 0;
 }
 
@@ -893,14 +918,14 @@ body.page-out {
 }
 
 .viz-arrow {
-  color: rgba(160, 225, 185, 0.9);
+  color: #1f7a4f;
   animation: bounce 2s infinite ease-in-out;
 }
 
 .viz-percent {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--ink);
   margin-top: 8px;
   letter-spacing: 1px;
 }
@@ -1001,20 +1026,20 @@ a.home-basket-card {
   align-items: flex-start;
   text-decoration: none;
   cursor: pointer;
-  background: linear-gradient(152deg, #0c3222 0%, #13402c 42%, #185a3d 100%);
-  border: 1px solid rgba(104, 182, 132, 0.38);
-  color: rgba(244, 252, 247, 0.96);
-  box-shadow: 0 14px 36px rgba(6, 36, 24, 0.38);
+  background: linear-gradient(152deg, #cef2db 0%, #9dddb2 100%);
+  border: 1px solid rgba(135, 204, 150, 0.6);
+  color: var(--ink);
+  box-shadow: 0 14px 36px rgba(109, 163, 118, 0.15);
 }
 
 a.home-basket-card h3 {
-  color: #f2fcf6;
+  color: var(--ink);
 }
 
 a.home-basket-card .card-tag {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(104, 182, 132, 0.42);
-  color: #bfe8cc;
+  background: rgba(18, 53, 36, 0.08);
+  border-color: rgba(18, 53, 36, 0.2);
+  color: #1a5231;
 }
 
 a.home-basket-card:focus-visible {
@@ -1024,8 +1049,8 @@ a.home-basket-card:focus-visible {
 
 a.home-basket-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 22px 48px rgba(6, 36, 24, 0.48);
-  border-color: rgba(143, 212, 168, 0.55);
+  box-shadow: 0 22px 48px rgba(109, 163, 118, 0.25);
+  border-color: rgba(135, 204, 150, 0.8);
 }
 
 a.home-basket-card:active {
@@ -1041,14 +1066,14 @@ a.home-basket-card:active {
 .home-basket-card__cta span {
   font-size: 0.86rem;
   font-weight: 700;
-  color: #9fe6b8;
+  color: #1f7a4f;
   letter-spacing: 0.03em;
 }
 
 a.home-basket-card:hover .home-basket-card__cta span {
   text-decoration: underline;
   text-underline-offset: 0.18em;
-  color: #c4f5d4;
+  color: #124d31;
 }
 
 .btn {

@@ -178,16 +178,18 @@ function setupPageTransitions() {
 
 function setupHeroParallax() {
   const hero = document.querySelector(".hero");
-  const orbOne = document.querySelector(".orb-1");
-  const orbTwo = document.querySelector(".orb-2");
-  if (!hero || !orbOne || !orbTwo) return;
+  const orbs = document.querySelectorAll(".hero-orb");
+  if (!hero || !orbs.length) return;
 
   hero.addEventListener("mousemove", (event) => {
     const rect = hero.getBoundingClientRect();
     const x = event.clientX - rect.left - rect.width / 2;
     const y = event.clientY - rect.top - rect.height / 2;
-    orbOne.style.transform = `translate(${x * 0.03}px, ${y * 0.03}px)`;
-    orbTwo.style.transform = `translate(${x * -0.02}px, ${y * -0.02}px)`;
+    orbs.forEach((orb, i) => {
+      const depth = 0.015 + (i % 3) * 0.01;
+      const dir = (i % 2 === 0) ? 1 : -1;
+      orb.style.transform = `translate(${x * depth * dir}px, ${y * depth * dir}px)`;
+    });
   });
 }
 
