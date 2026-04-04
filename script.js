@@ -527,6 +527,77 @@ function setupQurveWayPhilosophy() {
   updateLine();
 }
 
+function setupCardCarousel() {
+  const container = document.querySelector('[data-carousel-track]');
+  if (!container) return;
+
+  const prevBtn = document.querySelector('.carousel-nav-btn.prev');
+  const nextBtn = document.querySelector('.carousel-nav-btn.next');
+  const indicators = document.querySelectorAll('.indicator');
+  
+  let activeIndex = 1; // Start with center card (Card 2) active
+  const maxIndex = 2; // Valid indices: 0, 1, 2
+
+  const updateCarousel = (index) => {
+    // Implement infinite loop
+    activeIndex = (index + maxIndex + 1) % (maxIndex + 1);
+    
+    // Update container classes to trigger CSS 3D transitions
+    container.classList.remove('active-0', 'active-1', 'active-2');
+    container.classList.add(`active-${activeIndex}`);
+    
+    // Update indicator UI
+    if (indicators) {
+      indicators.forEach((ind, i) => {
+        ind.classList.toggle('active', i === activeIndex);
+      });
+    }
+  };
+
+  if (prevBtn) prevBtn.addEventListener('click', () => updateCarousel(activeIndex - 1));
+  if (nextBtn) nextBtn.addEventListener('click', () => updateCarousel(activeIndex + 1));
+  
+  if (indicators) {
+    indicators.forEach(ind => {
+      ind.addEventListener('click', () => {
+        updateCarousel(Number(ind.dataset.index));
+      });
+    });
+  }
+
+  // Pointer/Swipe support
+  let startX = 0;
+  let isDragging = false;
+
+  const handleDragStart = (e) => {
+    if (e.target.closest('button')) return; // ignore clicks on buttons
+    isDragging = true;
+    startX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+  };
+
+  const handleDragEnd = (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    
+    const endX = e.type.includes('mouse') ? e.pageX : e.changedTouches[0].clientX;
+    const diff = startX - endX;
+
+    if (Math.abs(diff) > 40) { // 40px threshold for swiping
+      if (diff > 0) {
+        updateCarousel(activeIndex + 1);
+      } else {
+        updateCarousel(activeIndex - 1);
+      }
+    }
+  };
+
+  container.addEventListener('mousedown', handleDragStart);
+  container.addEventListener('touchstart', handleDragStart, { passive: true });
+  
+  window.addEventListener('mouseup', handleDragEnd);
+  container.addEventListener('touchend', handleDragEnd);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   document.body.classList.add("page-ready");
   setupRotatingHeadline();
@@ -542,4 +613,5 @@ document.addEventListener("DOMContentLoaded", () => {
   setupFinanceToolDemo();
   setupForms();
   setupBrandScrollSwap();
+  setupCardCarousel();
 });

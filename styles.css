@@ -674,6 +674,312 @@ body.page-out {
   }
 }
 
+/* Home — Carousel Section */
+.home-carousel {
+  padding-bottom: 5rem;
+  overflow: hidden;
+}
+
+.home-carousel__title {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 3rem;
+}
+
+.carousel-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  perspective: 1200px;
+  user-select: none;
+}
+
+.carousel-container {
+  position: relative;
+  height: 480px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform-style: preserve-3d;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.carousel-container:active {
+  cursor: grabbing;
+}
+
+.carousel-card {
+  position: absolute;
+  left: 50%;
+  width: 340px;
+  height: 420px;
+  background: linear-gradient(145deg, #184f33, #0f3521);
+  border: 1px solid rgba(138, 194, 162, 0.25);
+  border-radius: 20px;
+  padding: 2rem;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease, z-index 0s 0.3s;
+  will-change: transform, opacity;
+  box-shadow: 0 20px 40px rgba(6, 36, 24, 0.5);
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Make active cards interactable if needed, otherwise no pointer events to prevent dragging issues */
+.carousel-container[class*="active-"] .carousel-card {
+  z-index: 1;
+  opacity: 0;
+  transform: translateX(-50%) scale(0.7) translateZ(-150px);
+}
+
+/* active-0 */
+.carousel-container.active-0 [data-index="0"] {
+  z-index: 3;
+  opacity: 1;
+  transform: translateX(-50%) scale(1) translateZ(0);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease;
+  pointer-events: auto;
+}
+.carousel-container.active-0 [data-index="1"] {
+  z-index: 2;
+  opacity: 0.5;
+  transform: translateX(15%) scale(0.85) translateZ(-80px);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease;
+}
+.carousel-container.active-0 [data-index="2"] {
+  z-index: 2;
+  opacity: 0.5;
+  transform: translateX(-115%) scale(0.85) translateZ(-80px);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease;
+}
+
+/* active-1 */
+.carousel-container.active-1 [data-index="0"] {
+  z-index: 2;
+  opacity: 0.5;
+  transform: translateX(-115%) scale(0.85) translateZ(-80px);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease;
+}
+.carousel-container.active-1 [data-index="1"] {
+  z-index: 3;
+  opacity: 1;
+  transform: translateX(-50%) scale(1) translateZ(0);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease;
+  pointer-events: auto;
+}
+.carousel-container.active-1 [data-index="2"] {
+  z-index: 2;
+  opacity: 0.5;
+  transform: translateX(15%) scale(0.85) translateZ(-80px);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease;
+}
+
+/* active-2 */
+.carousel-container.active-2 [data-index="0"] {
+  z-index: 2;
+  opacity: 0.5;
+  transform: translateX(15%) scale(0.85) translateZ(-80px);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease;
+}
+.carousel-container.active-2 [data-index="1"] {
+  z-index: 2;
+  opacity: 0.5;
+  transform: translateX(-115%) scale(0.85) translateZ(-80px);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease;
+}
+.carousel-container.active-2 [data-index="2"] {
+  z-index: 3;
+  opacity: 1;
+  transform: translateX(-50%) scale(1) translateZ(0);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease;
+  pointer-events: auto;
+}
+
+/* The active card gets a brighter border */
+.carousel-container.active-0 [data-index="0"],
+.carousel-container.active-1 [data-index="1"],
+.carousel-container.active-2 [data-index="2"] {
+  border-color: rgba(143, 212, 168, 0.6);
+  box-shadow: 0 30px 60px rgba(6, 36, 24, 0.7);
+}
+
+.carousel-card-title {
+  margin-top: 1.5rem;
+  font-size: 1.6rem;
+  font-family: "Playfair Display", serif;
+  color: #fff;
+  margin-bottom: 0.8rem;
+}
+
+.carousel-card-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+/* Card Visuals (Subtle Data Elements) */
+.card-visual {
+  height: 120px;
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* Track visual: Line graph */
+.viz-line-graph {
+  width: 140px;
+  height: 80px;
+  position: relative;
+}
+
+.viz-line {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  width: 150px;
+  height: 2px;
+  background: rgba(160, 225, 185, 0.8);
+  transform: rotate(-15deg);
+  transform-origin: left center;
+}
+
+.viz-point {
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  box-shadow: 0 0 10px rgba(255,255,255,0.6);
+}
+
+.viz-point.p1 { left: 10px; top: 37.5px; }
+.viz-point.p2 { left: 70px; top: 21.5px; }
+.viz-point.p3 { left: 130px; top: 5.5px; }
+
+/* Analyze visual: Bar chart */
+.viz-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 80px;
+}
+
+.viz-bar {
+  width: 16px;
+  background: rgba(160, 225, 185, 0.8);
+  border-radius: 4px 4px 0 0;
+}
+
+.viz-bar.b1 { height: 30px; }
+.viz-bar.b2 { height: 50px; }
+.viz-bar.b3 { height: 40px; }
+.viz-bar.b4 { height: 75px; }
+
+/* Adapt visual: Trend arrow */
+.viz-trend {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.viz-arrow {
+  color: rgba(160, 225, 185, 0.9);
+  animation: bounce 2s infinite ease-in-out;
+}
+
+.viz-percent {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 8px;
+  letter-spacing: 1px;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Nav & Indicators */
+.carousel-nav {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.carousel-nav-btn {
+  background: rgba(245, 252, 248, 0.8);
+  border: 1px solid rgba(160, 225, 185, 0.4);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #123524;
+  transition: all 0.2s ease;
+}
+
+.carousel-nav-btn:hover {
+  background: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(6, 36, 24, 0.1);
+}
+
+.carousel-indicators {
+  display: flex;
+  gap: 10px;
+}
+
+.indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(18, 53, 36, 0.2);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.indicator.active {
+  background: #1f7a4f;
+  transform: scale(1.3);
+}
+
+@media (max-width: 768px) {
+  .carousel-card {
+    width: 280px;
+    height: 380px;
+    padding: 1.5rem;
+  }
+  
+  .carousel-container.active-0 [data-index="1"],
+  .carousel-container.active-1 [data-index="2"],
+  .carousel-container.active-2 [data-index="0"] {
+    transform: translateX(35%) scale(0.85) translateZ(-80px);
+  }
+  
+  .carousel-container.active-0 [data-index="2"],
+  .carousel-container.active-1 [data-index="0"],
+  .carousel-container.active-2 [data-index="1"] {
+    transform: translateX(-135%) scale(0.85) translateZ(-80px);
+  }
+}
+
 /* Home — basket preview (links to strategy.html anchors) */
 .home-baskets-preview__title,
 .home-baskets-preview__intro {
