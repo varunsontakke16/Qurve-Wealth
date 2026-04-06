@@ -600,6 +600,35 @@ function setupCardCarousel() {
   container.addEventListener('touchend', handleDragEnd);
 }
 
+function setupMobileMenu() {
+  const toggle = document.querySelector('.menu-toggle');
+  const nav = document.querySelector('.top-nav');
+  const navLinks = document.querySelector('.nav-links');
+  const navCta = document.querySelector('.top-nav > .inner > .nav-cta');
+
+  if (!toggle) return;
+
+  // Move CTA into nav-links for mobile
+  if (navCta && navLinks && !navLinks.querySelector('.nav-cta-clone')) {
+    const mobileCta = navCta.cloneNode(true);
+    mobileCta.classList.add('nav-cta-clone');
+    navLinks.appendChild(mobileCta);
+  }
+
+  toggle.addEventListener('click', () => {
+    nav.classList.toggle('nav-open');
+    document.body.style.overflow = nav.classList.contains('nav-open') ? 'hidden' : '';
+  });
+
+  // Close menu when clicking a link
+  navLinks.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      nav.classList.remove('nav-open');
+      document.body.style.overflow = '';
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   document.body.classList.add("page-ready");
   setupRotatingHeadline();
@@ -616,4 +645,5 @@ document.addEventListener("DOMContentLoaded", () => {
   setupForms();
   setupBrandScrollSwap();
   setupCardCarousel();
+  setupMobileMenu();
 });
