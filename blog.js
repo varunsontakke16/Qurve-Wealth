@@ -29,7 +29,7 @@ function renderBlogCard(post, index) {
   const excerpt = post.excerpt || "";
   return `
     <article class="card blog-card reveal visible" data-tags="${dataTags}" data-category="${escapeHtml(primary)}">
-      <a href="post.html?slug=${encodeURIComponent(post.slug)}" class="blog-card__link">
+      <a href="/post?slug=${encodeURIComponent(post.slug)}" class="blog-card__link">
         ${img}
         <div class="blog-card__body">
           <div class="blog-card__tags">
@@ -74,7 +74,7 @@ async function loadBlogList() {
     const posts = data.posts || [];
     if (!posts.length) {
       container.innerHTML =
-        '<p class="muted">No articles yet. Add one in the <a href="admin.html">admin</a> area.</p>';
+        '<p class="muted">No articles yet. Add one in the <a href="/admin">admin</a> area.</p>';
       return;
     }
     container.innerHTML = posts.map((p, i) => renderBlogCard(p, i)).join("");

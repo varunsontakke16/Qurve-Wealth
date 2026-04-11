@@ -160,7 +160,7 @@ function setupCustomCursor() {
 }
 
 function setupPageTransitions() {
-  const links = document.querySelectorAll("a[href$='.html']");
+  const links = document.querySelectorAll("a[href^='/']:not([target='_blank'])");
   links.forEach((link) => {
     link.addEventListener("click", (event) => {
       const href = link.getAttribute("href");
