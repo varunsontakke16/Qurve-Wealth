@@ -24,7 +24,7 @@ function renderBlogCard(post, index) {
     .map((t) => `<span class="card-tag">${escapeHtml(CATEGORY_LABEL[t] || t)}</span>`)
     .join("");
   const img = post.imageUrl
-    ? `<img src="${escapeHtml(post.imageUrl)}" class="blog-card__thumb blog-card__thumb--photo" style="object-fit:cover; display:block;" onerror="this.onerror=null; this.outerHTML='<div class=\\'blog-card__thumb ${thumbClass(index)}\\' role=\\'presentation\\'></div>';" alt="" />`
+    ? `<img src="${escapeHtml(post.imageUrl)}" class="blog-card__thumb blog-card__thumb--photo" style="object-fit:cover; display:block;" onerror="this.onerror=null; this.className='blog-card__thumb ${thumbClass(index)}'; this.removeAttribute('src');" alt="" />`
     : `<div class="blog-card__thumb ${thumbClass(index)}" role="presentation"></div>`;
   const excerpt = post.excerpt || "";
   return `
