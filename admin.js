@@ -322,3 +322,21 @@ if (getToken()) {
   });
 }
 
+
+const fImageUrl = document.getElementById("f-image-url");
+const fImageUrlPreview = document.getElementById("image-url-preview");
+function updatePreview() {
+  if(!fImageUrl || !fImageUrlPreview) return;
+  const val = fImageUrl.value.trim();
+  if (val) {
+    fImageUrlPreview.src = val;
+    fImageUrlPreview.classList.remove("hidden");
+  } else {
+    fImageUrlPreview.classList.add("hidden");
+  }
+}
+if(fImageUrl && fImageUrlPreview) {
+  fImageUrl.addEventListener("input", updatePreview);
+  fImageUrlPreview.addEventListener("error", () => fImageUrlPreview.classList.add("hidden"));
+  setInterval(updatePreview, 1000); // Poll for programmatic changes
+}

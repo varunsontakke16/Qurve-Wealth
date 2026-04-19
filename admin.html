@@ -115,12 +115,10 @@
               </div>
               <div style="grid-column: 1 / -1">
                 <label for="f-image-url">Image URL (optional)</label>
-                <input
-                  id="f-image-url"
-                  name="image_url"
-                  type="url"
-                  placeholder="https://… (recommended on Vercel; persists across deploys)"
-                />
+                <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                  <input id="f-image-url" name="image_url" type="url" placeholder="https://… (recommended on Vercel; persists across deploys)" style="flex: 1;" />
+                  <img id="image-url-preview" class="hidden" style="max-height: 80px; width: auto; border-radius: 4px; object-fit: cover;" alt="Preview" />
+                </div>
               </div>
               <div>
                 <label for="f-image">Thumbnail file (optional)</label>

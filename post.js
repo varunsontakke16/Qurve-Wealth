@@ -81,7 +81,7 @@ async function loadPost() {
     document.title = `${post.title} | Qurve Wealth`;
 
     const heroImg = post.imageUrl
-      ? `<div class="post-hero__media"><img src="${escapeHtml(post.imageUrl)}" alt="" width="1200" height="675" loading="eager" /></div>`
+      ? `<div class="post-hero__media"><img src="${escapeHtml(post.imageUrl)}" alt="" width="1200" height="675" loading="eager" onerror="this.parentElement.outerHTML='<div class=\\'post-hero__media post-hero__media--gradient\\' role=\\'presentation\\'></div>';" /></div>`
       : `<div class="post-hero__media post-hero__media--gradient" role="presentation"></div>`;
 
     const bodyHtml =
