@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const { put, list } = require("@vercel/blob");
 
 function resolveCsvPath() {
   const isVercel = Boolean(process.env.VERCEL);
@@ -21,9 +22,7 @@ function ensureCsvExists(csvPath) {
 function escapeCsvValue(v) {
   if (v === null || v === undefined) return "";
   const s = String(v);
-  // Escape double-quotes by doubling them.
   const escaped = s.replace(/"/g, '""');
-  // Wrap in quotes if needed.
   if (/[",\n\r]/.test(escaped)) return `"${escaped}"`;
   return escaped;
 }
@@ -55,10 +54,32 @@ function parseCsvLine(line) {
   return out;
 }
 
-function readAllResponses() {
-  const csvPath = resolveCsvPath();
-  ensureCsvExists(csvPath);
-  const raw = fs.readFileSync(csvPath, "utf8").trim();
+async function readAllResponses() {
+  let raw = "";
+
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const { blobs } = await list({ prefix: "qurve/db/invest-responses.csv" });
+      if (blobs.length > 0) {
+        const response = await fetch(blobs[0].url);
+        if (response.ok) {
+          raw = await response.text();
+        }
+      }
+    } catch (e) {
+      console.error("[Blob Read Error - CSV]", e);
+    }
+  } else {
+    const csvPath = resolveCsvPath();
+    ensureCsvExists(csvPath);
+    try {
+      raw = fs.readFileSync(csvPath, "utf8");
+    } catch {
+      raw = "";
+    }
+  }
+
+  raw = raw.trim();
   if (!raw) return [];
   const lines = raw.split(/\r?\n/);
   if (lines.length <= 1) return [];
@@ -94,9 +115,7 @@ function readAllResponses() {
   return rows;
 }
 
-function writeAllResponsesAtomic(responses) {
-  const csvPath = resolveCsvPath();
-  ensureCsvExists(csvPath);
+async function writeAllResponsesAtomic(responses) {
   const header = [
     "id",
     "fullName",
@@ -124,14 +143,25 @@ function writeAllResponsesAtomic(responses) {
         .join(",")
     );
   }
+  const content = lines.join("\n") + "\n";
 
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    await put("qurve/db/invest-responses.csv", content, {
+      access: "public",
+      addRandomSuffix: false,
+    });
+    return;
+  }
+
+  const csvPath = resolveCsvPath();
+  ensureCsvExists(csvPath);
   const tmp = `${csvPath}.${process.pid}.tmp-${crypto.randomBytes(4).toString("hex")}`;
-  fs.writeFileSync(tmp, lines.join("\n") + "\n", "utf8");
+  fs.writeFileSync(tmp, content, "utf8");
   fs.renameSync(tmp, csvPath);
 }
 
-function appendResponse(payload) {
-  const rows = readAllResponses();
+async function appendResponse(payload) {
+  const rows = await readAllResponses();
   const now = new Date().toISOString();
   const id = payload.id || `${Date.now()}-${crypto.randomBytes(6).toString("hex")}`;
   const response = {
@@ -145,20 +175,21 @@ function appendResponse(payload) {
     completed: Boolean(payload.completed),
   };
   rows.push(response);
-  writeAllResponsesAtomic(rows);
+  await writeAllResponsesAtomic(rows);
   return response;
 }
 
-function listResponses() {
-  return readAllResponses().sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+async function listResponses() {
+  const rows = await readAllResponses();
+  return rows.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
 }
 
-function markResponseCompleted(id, completed) {
-  const rows = readAllResponses();
+async function markResponseCompleted(id, completed) {
+  const rows = await readAllResponses();
   const idx = rows.findIndex((r) => r.id === id);
   if (idx === -1) return null;
   rows[idx] = { ...rows[idx], completed: Boolean(completed) };
-  writeAllResponsesAtomic(rows);
+  await writeAllResponsesAtomic(rows);
   return rows[idx];
 }
 
@@ -167,4 +198,3 @@ module.exports = {
   listResponses,
   markResponseCompleted,
 };
-

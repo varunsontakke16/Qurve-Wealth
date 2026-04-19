@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const express = require("express");
 const multer = require("multer");
 const jwt = require("jsonwebtoken");
+const { put } = require("@vercel/blob");
 const {
   listPosts,
   getPostBySlug,
@@ -13,7 +14,6 @@ const {
   updatePost,
   deletePost,
   seedIfEmpty,
-  ensureSamplePost,
 } = require("./db");
 const { renderMarkdown } = require("./markdown");
 const {
@@ -59,12 +59,7 @@ if (!IS_VERCEL) {
 }
 
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-try {
-  seedIfEmpty();
-  ensureSamplePost();
-} catch (e) {
-  console.error("[qurve] DB seed failed:", e);
-}
+seedIfEmpty().catch(e => console.error("[qurve] DB seed failed:", e));
 
 /** Vercel rewrites /api/* → serverless; restore path so Express routes match. */
 if (IS_VERCEL) {
@@ -98,17 +93,9 @@ if (IS_VERCEL) {
   });
 }
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).slice(0, 12) || ".jpg";
-    const safe = `${Date.now()}-${crypto.randomBytes(6).toString("hex")}${ext}`;
-    cb(null, safe);
-  },
-});
-
+// We use memoryStorage so we can upload it to Vercel Blob or save locally manually.
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const ok = /^image\/(jpeg|png|webp|gif)$/i.test(file.mimetype);
@@ -159,11 +146,11 @@ function validateInvestPayload(body) {
 }
 
 // Public endpoint used by the "Invest Now" form.
-app.post("/api/invest", (req, res) => {
+app.post("/api/invest", async (req, res) => {
   try {
     const v = validateInvestPayload(req.body || {});
     if (!v.ok) return res.status(400).json({ error: v.errors[0] || "Invalid input" });
-    const response = appendResponse(v.normalized);
+    const response = await appendResponse(v.normalized);
     return res.status(201).json({ ok: true, response });
   } catch (e) {
     console.error(e);
@@ -186,21 +173,21 @@ function authAdmin(req, res, next) {
 }
 
 // Admin endpoints for the Invest Now CSV-backed responses.
-app.get("/api/admin/invest", authAdmin, (_req, res) => {
+app.get("/api/admin/invest", authAdmin, async (_req, res) => {
   try {
-    res.json({ responses: listResponses() });
+    res.json({ responses: await listResponses() });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Failed to load responses" });
   }
 });
 
-app.put("/api/admin/invest/:id/complete", authAdmin, (req, res) => {
+app.put("/api/admin/invest/:id/complete", authAdmin, async (req, res) => {
   try {
     const id = String(req.params.id || "").trim();
     if (!id) return res.status(400).json({ error: "Missing id" });
     const completed = req.body?.completed === false ? false : true;
-    const response = markResponseCompleted(id, completed);
+    const response = await markResponseCompleted(id, completed);
     if (!response) return res.status(404).json({ error: "Not found" });
     res.json({ response });
   } catch (e) {
@@ -209,18 +196,18 @@ app.put("/api/admin/invest/:id/complete", authAdmin, (req, res) => {
   }
 });
 
-app.get("/api/posts", (_req, res) => {
+app.get("/api/posts", async (_req, res) => {
   try {
-    res.json({ posts: listPosts() });
+    res.json({ posts: await listPosts() });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Failed to load posts" });
   }
 });
 
-app.get("/api/posts/:slug", (req, res) => {
+app.get("/api/posts/:slug", async (req, res) => {
   try {
-    const post = getPostBySlug(req.params.slug);
+    const post = await getPostBySlug(req.params.slug);
     if (!post) return res.status(404).json({ error: "Not found" });
     const enriched = { ...post, bodyHtml: renderMarkdown(post.body) };
     res.json({ post: enriched });
@@ -244,82 +231,113 @@ app.post("/api/admin/login", (req, res) => {
   res.json({ token, expiresIn: JWT_EXPIRES });
 });
 
-app.get("/api/admin/posts", authAdmin, (_req, res) => {
-  res.json({ posts: listPosts() });
+app.get("/api/admin/posts", authAdmin, async (_req, res) => {
+  try {
+    res.json({ posts: await listPosts() });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to load posts" });
+  }
 });
 
-app.post("/api/admin/posts", authAdmin, upload.single("image"), (req, res) => {
+app.post("/api/admin/posts", authAdmin, upload.single("image"), async (req, res) => {
   try {
-    const { title, excerpt, body, category, image_url: imageUrl } = req.body;
+    const { title, excerpt, body, category, image_url: imageUrlInput } = req.body;
     if (!title || typeof title !== "string") {
       return res.status(400).json({ error: "Title is required" });
     }
     const tags = parseTagsFromRequest(req.body);
-    const post = insertPost({
+    
+    let uploadedBlobUrl = null;
+    let localFilename = null;
+
+    if (req.file) {
+      if (process.env.BLOB_READ_WRITE_TOKEN) {
+        const { url } = await put(req.file.originalname, req.file.buffer, { access: 'public' });
+        uploadedBlobUrl = url;
+      } else {
+        const ext = path.extname(req.file.originalname).slice(0, 12) || ".jpg";
+        localFilename = `${Date.now()}-${crypto.randomBytes(6).toString("hex")}${ext}`;
+        fs.writeFileSync(path.join(UPLOAD_DIR, localFilename), req.file.buffer);
+      }
+    }
+
+    const finalImageUrl = uploadedBlobUrl || (typeof imageUrlInput === "string" && imageUrlInput.trim() ? imageUrlInput.trim() : null);
+
+    const post = await insertPost({
       title,
       excerpt,
       body,
       tags,
       category: category || "markets",
-      imageFilename: req.file ? req.file.filename : null,
-      imageUrl: typeof imageUrl === "string" && imageUrl.trim() ? imageUrl.trim() : null,
+      imageFilename: localFilename,
+      imageUrl: finalImageUrl,
     });
     res.status(201).json({ post });
   } catch (e) {
     console.error(e);
-    if (req.file) fs.unlink(req.file.path, () => {});
     res.status(500).json({ error: e.message || "Create failed" });
   }
 });
 
-app.put("/api/admin/posts/:id", authAdmin, upload.single("image"), (req, res) => {
+app.put("/api/admin/posts/:id", authAdmin, upload.single("image"), async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const existing = getPostById(id);
+    const existing = await getPostById(id);
     if (!existing) return res.status(404).json({ error: "Not found" });
 
     const { title, excerpt, body, category, slug, image_url: imageUrlBody } = req.body;
     const tags = parseTagsFromRequest(req.body);
-    let imageFilename;
+    
+    let uploadedBlobUrl = null;
+    let localFilename = undefined;
+
     if (req.file) {
-      imageFilename = req.file.filename;
-      if (existing.image_filename) {
-        const oldPath = path.join(UPLOAD_DIR, existing.image_filename);
-        fs.unlink(oldPath, () => {});
+      if (process.env.BLOB_READ_WRITE_TOKEN) {
+        const { url } = await put(req.file.originalname, req.file.buffer, { access: 'public' });
+        uploadedBlobUrl = url;
+        localFilename = null; // Clear local fallback if moving to blob
+      } else {
+        const ext = path.extname(req.file.originalname).slice(0, 12) || ".jpg";
+        localFilename = `${Date.now()}-${crypto.randomBytes(6).toString("hex")}${ext}`;
+        fs.writeFileSync(path.join(UPLOAD_DIR, localFilename), req.file.buffer);
+        
+        if (existing.image_filename) {
+          const oldPath = path.join(UPLOAD_DIR, existing.image_filename);
+          if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        }
       }
     }
 
-    const imageUrl =
-      imageUrlBody !== undefined
-        ? String(imageUrlBody).trim() || null
-        : undefined;
+    const nextUrl = uploadedBlobUrl || (imageUrlBody !== undefined ? (String(imageUrlBody).trim() || null) : undefined);
 
-    const post = updatePost(id, {
+    const post = await updatePost(id, {
       title: title !== undefined ? title : existing.title,
       excerpt: excerpt !== undefined ? excerpt : existing.excerpt,
       body: body !== undefined ? body : existing.body,
       tags: tags !== undefined ? tags : undefined,
       category: category !== undefined ? category : existing.category,
       slug: slug !== undefined ? slug : undefined,
-      imageFilename: req.file ? imageFilename : undefined,
-      imageUrl,
+      imageFilename: localFilename,
+      imageUrl: nextUrl,
     });
     res.json({ post });
   } catch (e) {
     console.error(e);
-    if (req.file) fs.unlink(req.file.path, () => {});
     res.status(500).json({ error: e.message || "Update failed" });
   }
 });
 
-app.delete("/api/admin/posts/:id", authAdmin, (req, res) => {
+app.delete("/api/admin/posts/:id", authAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const result = deletePost(id);
+    const result = await deletePost(id);
     if (!result.changes) return res.status(404).json({ error: "Not found" });
-    if (result.image_filename) {
-      fs.unlink(path.join(UPLOAD_DIR, result.image_filename), () => {});
+    if (result.image_filename && !process.env.BLOB_READ_WRITE_TOKEN) {
+      const p = path.join(UPLOAD_DIR, result.image_filename);
+      if (fs.existsSync(p)) fs.unlinkSync(p);
     }
+    // We do not delete blobs from Vercel natively here to be safe and save auth, but could be added later.
     res.json({ ok: true });
   } catch (e) {
     console.error(e);

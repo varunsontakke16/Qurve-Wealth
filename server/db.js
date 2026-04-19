@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { put, list } = require("@vercel/blob");
 
 const ALLOWED_TAG_SLUGS = new Set([
   "markets",
@@ -18,9 +19,7 @@ function normalizeTags(tags, fallbackCategory) {
       if (Array.isArray(parsed)) {
         arr = parsed.map((t) => String(t).trim()).filter((t) => ALLOWED_TAG_SLUGS.has(t));
       }
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
   }
   if (!arr.length) {
     const fb = String(fallbackCategory || "markets").trim();
@@ -38,16 +37,41 @@ function resolveDbPath() {
 
 const dbPath = resolveDbPath();
 
-function readDb() {
+async function readDb() {
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const { blobs } = await list({ prefix: "qurve/db/blog.json" });
+      if (blobs.length > 0) {
+        const response = await fetch(blobs[0].url);
+        if (response.ok) {
+          return await response.json();
+        }
+      }
+      return { posts: [] };
+    } catch (e) {
+      console.error("[Blob Read Error]", e);
+      throw new Error(`Failed to read Blob database: ${e.message}`);
+    }
+  }
   try {
     const raw = fs.readFileSync(dbPath, "utf8");
     return JSON.parse(raw);
-  } catch {
-    return { posts: [] };
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return { posts: [] };
+    }
+    throw new Error(`Failed to read or parse database: ${error.message}`);
   }
 }
 
-function writeDbAtomic(data) {
+async function writeDbAtomic(data) {
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    await put("qurve/db/blog.json", JSON.stringify(data), {
+      access: "public",
+      addRandomSuffix: false,
+    });
+    return;
+  }
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const tmp = `${dbPath}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(data, null, 2), "utf8");
@@ -79,21 +103,21 @@ function rowToPost(row) {
   };
 }
 
-function listPosts() {
-  const { posts } = readDb();
+async function listPosts() {
+  const { posts } = await readDb();
   return [...posts]
     .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
     .map(rowToPost);
 }
 
-function getPostBySlug(slug) {
-  const { posts } = readDb();
+async function getPostBySlug(slug) {
+  const { posts } = await readDb();
   const row = posts.find((p) => p.slug === slug);
   return rowToPost(row);
 }
 
-function getPostById(id) {
-  const { posts } = readDb();
+async function getPostById(id) {
+  const { posts } = await readDb();
   const row = posts.find((p) => p.id === id);
   return rowToPost(row);
 }
@@ -107,8 +131,8 @@ function slugify(input) {
     .slice(0, 120) || "post";
 }
 
-function ensureUniqueSlug(base, excludeId) {
-  const { posts } = readDb();
+async function ensureUniqueSlug(base, excludeId) {
+  const { posts } = await readDb();
   let slug = base;
   let n = 2;
   while (true) {
@@ -124,10 +148,10 @@ function nextId(posts) {
   return Math.max(...posts.map((p) => p.id)) + 1;
 }
 
-function insertPost({ title, excerpt, body, category, tags, imageFilename, imageUrl, slugBase }) {
-  const data = readDb();
+async function insertPost({ title, excerpt, body, category, tags, imageFilename, imageUrl, slugBase }) {
+  const data = await readDb();
   const base = slugBase ? slugify(slugBase) : slugify(title);
-  const slug = ensureUniqueSlug(base);
+  const slug = await ensureUniqueSlug(base);
   const id = nextId(data.posts);
   const now = new Date().toISOString();
   const tagList = normalizeTags(tags, category);
@@ -145,20 +169,20 @@ function insertPost({ title, excerpt, body, category, tags, imageFilename, image
     updated_at: now,
   };
   data.posts.push(row);
-  writeDbAtomic(data);
+  await writeDbAtomic(data);
   return rowToPost(row);
 }
 
-function updatePost(id, { title, excerpt, body, category, tags, imageFilename, imageUrl, slug: slugOverride }) {
-  const data = readDb();
+async function updatePost(id, { title, excerpt, body, category, tags, imageFilename, imageUrl, slug: slugOverride }) {
+  const data = await readDb();
   const idx = data.posts.findIndex((p) => p.id === id);
   if (idx === -1) return null;
   const existing = data.posts[idx];
   let slug = existing.slug;
   if (slugOverride && String(slugOverride).trim()) {
-    slug = ensureUniqueSlug(slugify(slugOverride), id);
+    slug = await ensureUniqueSlug(slugify(slugOverride), id);
   } else if (title && title !== existing.title) {
-    slug = ensureUniqueSlug(slugify(title), id);
+    slug = await ensureUniqueSlug(slugify(title), id);
   }
   const nextFile =
     imageFilename !== undefined ? imageFilename : existing.image_filename;
@@ -183,22 +207,22 @@ function updatePost(id, { title, excerpt, body, category, tags, imageFilename, i
     updated_at: new Date().toISOString(),
   };
   data.posts[idx] = updated;
-  writeDbAtomic(data);
+  await writeDbAtomic(data);
   return rowToPost(updated);
 }
 
-function deletePost(id) {
-  const data = readDb();
+async function deletePost(id) {
+  const data = await readDb();
   const idx = data.posts.findIndex((p) => p.id === id);
   if (idx === -1) return { changes: 0, image_filename: null };
   const image_filename = data.posts[idx].image_filename;
   data.posts.splice(idx, 1);
-  writeDbAtomic(data);
+  await writeDbAtomic(data);
   return { changes: 1, image_filename };
 }
 
-function insertSamplePost() {
-  insertPost({
+async function insertSamplePost() {
+  await insertPost({
     title: "Sample: Five signals that matter for your mutual fund",
     excerpt:
       "Preview how Perspective cards and article pages look—with a real thumbnail, title, tags, and body text.",
@@ -223,17 +247,11 @@ Use a public **https** image URL. The hero image is separate from inline body im
   });
 }
 
-function seedIfEmpty() {
-  const data = readDb();
+async function seedIfEmpty() {
+  if (!process.env.BLOB_READ_WRITE_TOKEN && fs.existsSync(dbPath)) return;
+  const data = await readDb();
   if (data.posts.length > 0) return;
-  insertSamplePost();
-}
-
-/** Adds the UI sample post if missing (e.g. DB already had older seed data). */
-function ensureSamplePost() {
-  const data = readDb();
-  if (data.posts.some((p) => p.slug === "sample-qurve-perspective")) return;
-  insertSamplePost();
+  await insertSamplePost();
 }
 
 module.exports = {
@@ -245,5 +263,4 @@ module.exports = {
   deletePost,
   slugify,
   seedIfEmpty,
-  ensureSamplePost,
 };
