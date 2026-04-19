@@ -696,7 +696,7 @@ body.page-out {
   overflow: hidden;
 }
 
-.home-carousel__title {
+.section-title.home-carousel__title {
   text-align: center;
   max-width: 600px;
   margin: 0 auto 3rem;
