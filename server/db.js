@@ -42,7 +42,10 @@ async function readDb() {
     try {
       const { blobs } = await list({ prefix: "qurve/db/blog.json" });
       if (blobs.length > 0) {
-        const response = await fetch(blobs[0].url);
+        // Cache bust the blob URL to ensure we receive the fresh overwritten database
+        const urlToFetch = new URL(blobs[0].url);
+        urlToFetch.searchParams.set("t", Date.now());
+        const response = await fetch(urlToFetch.toString());
         if (response.ok) {
           return await response.json();
         }
