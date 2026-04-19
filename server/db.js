@@ -69,6 +69,7 @@ async function writeDbAtomic(data) {
     await put("qurve/db/blog.json", JSON.stringify(data), {
       access: "public",
       addRandomSuffix: false,
+      allowOverwrite: true,
     });
     return;
   }

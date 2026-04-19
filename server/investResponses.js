@@ -149,6 +149,7 @@ async function writeAllResponsesAtomic(responses) {
     await put("qurve/db/invest-responses.csv", content, {
       access: "public",
       addRandomSuffix: false,
+      allowOverwrite: true,
     });
     return;
   }
