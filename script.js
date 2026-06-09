@@ -629,7 +629,22 @@ function setupMobileMenu() {
   });
 }
 
+function setupWhatsAppWidget() {
+  const widget = document.createElement("a");
+  widget.href = "https://wa.me/919272402253";
+  widget.target = "_blank";
+  widget.rel = "noopener noreferrer";
+  widget.className = "whatsapp-float";
+  widget.setAttribute("aria-label", "Contact us on WhatsApp");
+  widget.innerHTML = `
+    <img src="whatsapp.png" alt="WhatsApp" class="whatsapp-icon" />
+    <span>Contact Us</span>
+  `;
+  document.body.appendChild(widget);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  setupWhatsAppWidget();
   document.body.classList.add("page-ready");
   setupRotatingHeadline();
   setupRevealOnScroll();
