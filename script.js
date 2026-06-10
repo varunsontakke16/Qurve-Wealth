@@ -464,6 +464,9 @@ function setupForms() {
           message.textContent =
             "Thanks. Your details were captured. A strategist from Qurve Wealth will reach out soon.";
         }
+        if (typeof window.fbq === "function") {
+          window.fbq("track", "Lead");
+        }
         form.reset();
         if (form.id === "invest-form") syncInvestNowRange(form);
       }
